@@ -70,7 +70,7 @@ function deductStock(
   })
 }
 
-type Tab = 'home' | 'stok'
+type Tab = 'home' | 'stok' | 'catatan'
 
 function HomeIcon() {
   return (
@@ -84,6 +84,15 @@ function StockIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
       <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375ZM19.5 9.75c0-1.036-.84-1.875-1.875-1.875H6.375c-1.036 0-1.875.84-1.875 1.875v.75c0 1.035.84 1.875 1.875 1.875h11.25c1.035 0 1.875-.84 1.875-1.875v-.75ZM3.75 15c0-1.036-.84-1.875-1.875-1.875S0 13.964 0 15v.75c0 1.036.84 1.875 1.875 1.875S3.75 16.786 3.75 15.75v-.75Z" />
+    </svg>
+  )
+}
+
+function NotesIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path fillRule="evenodd" d="M7.5 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 6ZM7.5 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 12Zm.75 5.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z" clipRule="evenodd" />
+      <path fillRule="evenodd" d="M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25ZM5.25 4.5A.75.75 0 0 0 4.5 5.25v13.5c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75V5.25a.75.75 0 0 0-.75-.75H5.25Z" clipRule="evenodd" />
     </svg>
   )
 }
@@ -103,6 +112,9 @@ export default function App() {
   const [showClosing, setShowClosing] = useState(false)
   const [lapakName, setLapakName] = useState('')
   const [sending, setSending] = useState(false)
+  const [expenses, setExpenses] = useState<{ name: string; amount: number }[]>([])
+  const [expenseName, setExpenseName] = useState('')
+  const [expenseAmount, setExpenseAmount] = useState('')
   const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -180,12 +192,16 @@ export default function App() {
   const handleKirim = async () => {
     if (!lapakName.trim()) return
     setSending(true)
+    const gaji = Math.floor(total * 0.1)
+    const totalPengeluaran = expenses.reduce((sum, e) => sum + e.amount, 0)
     const payload = {
       nama_lapak: lapakName.trim(),
       tanggal: new Date().toISOString(),
       omset_kotor: total,
-      gaji_kru: Math.floor(total * 0.1),
-      omset_bersih: total - Math.floor(total * 0.1),
+      gaji_kru: gaji,
+      pengeluaran: expenses,
+      total_pengeluaran: totalPengeluaran,
+      omset_bersih: total - gaji - totalPengeluaran,
       item_terjual: notes.length,
       sisa_stock: stock,
     }
@@ -229,6 +245,15 @@ export default function App() {
           >
             <StockIcon />
             Stok
+          </button>
+          <button
+            onClick={() => setActiveTab('catatan')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+              activeTab === 'catatan' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <NotesIcon />
+            Catatan
           </button>
         </nav>
       </header>
@@ -310,7 +335,7 @@ export default function App() {
               </div>
             </div>
           </>
-        ) : (
+        ) : activeTab === 'stok' ? (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Stok Bahan</h2>
@@ -344,6 +369,66 @@ export default function App() {
                 </div>
               ))}
             </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-gray-800">Pengeluaran Kru</h2>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={expenseName}
+                onChange={(e) => setExpenseName(e.target.value)}
+                placeholder="Nama pengeluaran"
+                className="flex-1 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-orange-400"
+              />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={expenseAmount}
+                onChange={(e) => setExpenseAmount(e.target.value)}
+                placeholder="Jumlah"
+                className="w-28 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-orange-400"
+              />
+              <button
+                onClick={() => {
+                  if (!expenseName.trim() || !expenseAmount.trim()) return
+                  const num = parseInt(expenseAmount.replace(/\./g, '')) || 0
+                  if (num <= 0) return
+                  setExpenses((prev) => [...prev, { name: expenseName.trim(), amount: num }])
+                  setExpenseName('')
+                  setExpenseAmount('')
+                }}
+                className="px-3 py-2 bg-orange-500 text-white text-sm font-medium rounded-md hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer"
+              >
+                Tambah
+              </button>
+            </div>
+            <div className="h-52 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              {expenses.length === 0 ? (
+                <p className="text-sm text-gray-400">Belum ada pengeluaran...</p>
+              ) : (
+                expenses.map((exp, i) => (
+                  <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                    <span className="text-sm text-gray-700">{i + 1}. {exp.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-700">Rp {exp.amount.toLocaleString('id-ID')}</span>
+                      <button
+                        onClick={() => setExpenses((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="text-xs text-red-400 hover:text-red-600 cursor-pointer"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            {expenses.length > 0 && (
+              <div className="text-right">
+                <span className="text-sm text-gray-500">Total Pengeluaran: </span>
+                <span className="text-sm font-bold text-red-600">Rp {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('id-ID')}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -404,13 +489,19 @@ export default function App() {
                   <span className="text-black">Omset Kotor</span>
                   <span className="font-bold text-black">Rp {total.toLocaleString('id-ID')}</span>
                 </div>
-                <div className="flex justify-between text-sm mb-2">
+                <div className="flex justify-between text-sm mb-1">
                   <span className="text-black">Gaji Kru (10%)</span>
                   <span className="font-bold text-black">Rp {Math.floor(total * 0.1).toLocaleString('id-ID')}</span>
                 </div>
-                <div className="border-t border-black pt-2 flex justify-between text-sm">
+                {expenses.length > 0 && (
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-black">Total Pengeluaran</span>
+                    <span className="font-bold text-black">Rp {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('id-ID')}</span>
+                  </div>
+                )}
+                <div className="border-t border-black pt-2 mt-1 flex justify-between text-sm">
                   <span className="text-black font-bold">Omset Bersih</span>
-                  <span className="font-bold text-black">Rp {(total - Math.floor(total * 0.1)).toLocaleString('id-ID')}</span>
+                  <span className="font-bold text-black">Rp {(total - Math.floor(total * 0.1) - expenses.reduce((sum, e) => sum + e.amount, 0)).toLocaleString('id-ID')}</span>
                 </div>
               </div>
 
