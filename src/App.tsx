@@ -20,11 +20,11 @@ interface RecipeIngredient {
 }
 
 const defaultStock: StockItem[] = [
-  { code: 'K', name: 'Kulit', quantity: 80 },
-  { code: 'T', name: 'Telor', quantity: 60 },
-  { code: 'S', name: 'Sosis', quantity: 28 },
-  { code: 'DS', name: 'Daging Sapi', quantity: 36 },
-  { code: 'DA', name: 'Daging Ayam', quantity: 7 },
+  { code: 'K', name: 'Kulit', quantity: 0 },
+  { code: 'T', name: 'Telor', quantity: 0 },
+  { code: 'S', name: 'Sosis', quantity: 0 },
+  { code: 'DS', name: 'Daging Sapi', quantity: 0 },
+  { code: 'DA', name: 'Daging Ayam', quantity: 0 },
 ]
 
 const menu: MenuItem[] = [
@@ -99,7 +99,7 @@ export default function App() {
   const [stockAlert, setStockAlert] = useState<string | null>(null)
   const [orderHistory, setOrderHistory] = useState<MenuItem[]>([])
   const [totalInput, setTotalInput] = useState<string | null>(null)
-  const [stockAwal] = useState<StockItem[]>(defaultStock)
+  const [stockAwal, setStockAwal] = useState<StockItem[]>(defaultStock)
   const [showClosing, setShowClosing] = useState(false)
   const [lapakName, setLapakName] = useState('')
   const [sending, setSending] = useState(false)
@@ -107,6 +107,9 @@ export default function App() {
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleClick = useCallback((item: MenuItem) => {
+    if (orderHistory.length === 0) {
+      setStockAwal(stock.map((s) => ({ ...s })))
+    }
     const updatedStock = deductStock(item.id, stock)
     if (!updatedStock) {
       const recipe = menuRecipes[item.id]
@@ -153,7 +156,7 @@ export default function App() {
 
     setNotes((prev) => [...prev, { name: item.name, price: item.price, priceNum: item.priceNum }])
     setTotal((prev) => prev + item.priceNum)
-  }, [stock])
+  }, [stock, orderHistory.length])
 
   const handleUndo = () => {
     if (orderHistory.length === 0) return
@@ -172,10 +175,6 @@ export default function App() {
     setOrderHistory((prev) => prev.slice(0, -1))
     setNotes((prev) => prev.slice(0, -1))
     setTotal((prev) => prev - lastItem.priceNum)
-  }
-
-  const resetStock = () => {
-    setStock(defaultStock)
   }
 
   const handleKirim = async () => {
@@ -315,21 +314,13 @@ export default function App() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Stok Bahan</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowClosing(true)}
-                  disabled={notes.length === 0}
-                  className="text-sm px-3 py-1 bg-green-50 text-green-700 rounded-md border border-green-200 hover:bg-green-100 active:bg-green-200 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Closing
-                </button>
-                <button
-                  onClick={resetStock}
-                  className="text-sm px-3 py-1 bg-orange-50 text-orange-600 rounded-md border border-orange-200 hover:bg-orange-100 active:bg-orange-200 transition-colors cursor-pointer"
-                >
-                  Reset Stok
-                </button>
-              </div>
+              <button
+                onClick={() => setShowClosing(true)}
+                disabled={notes.length === 0}
+                className="text-sm px-3 py-1 bg-green-50 text-green-700 rounded-md border border-green-200 hover:bg-green-100 active:bg-green-200 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Closing
+              </button>
             </div>
             <div className="space-y-3">
               {stock.map((item, index) => (
