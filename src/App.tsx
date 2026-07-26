@@ -20,11 +20,11 @@ interface RecipeIngredient {
 }
 
 const defaultStock: StockItem[] = [
-  { code: 'K', name: 'Kulit', quantity: 0 },
-  { code: 'T', name: 'Telor', quantity: 0 },
-  { code: 'S', name: 'Sosis', quantity: 0 },
-  { code: 'DS', name: 'Daging Sapi', quantity: 0 },
-  { code: 'DA', name: 'Daging Ayam', quantity: 0 },
+  { code: 'K', name: 'Kulit', quantity: 200 },
+  { code: 'T', name: 'Telor', quantity: 80 },
+  { code: 'S', name: 'Sosis', quantity: 38 },
+  { code: 'DS', name: 'Daging Sapi', quantity: 48 },
+  { code: 'DA', name: 'Daging Ayam', quantity: 28 },
 ]
 
 const menu: MenuItem[] = [
@@ -220,40 +220,40 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      <header className="flex-none px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src="/asset/logokebabgatsu.png" alt="Logo" className="w-8 h-8 object-contain" />
-          <h1 className="text-xl font-bold text-gray-800">
+      <header className="flex-none px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <img src="/asset/logokebabgatsu.png" alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
+          <h1 className="text-base sm:text-xl font-bold text-gray-800">
             Kebab Gatsu
           </h1>
         </div>
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-0.5 sm:gap-1">
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'home' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <HomeIcon />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </button>
           <button
             onClick={() => setActiveTab('stok')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'stok' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <StockIcon />
-            Stok
+            <span className="hidden sm:inline">Stok</span>
           </button>
           <button
             onClick={() => setActiveTab('catatan')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               activeTab === 'catatan' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <NotesIcon />
-            Catatan
+            <span className="hidden sm:inline">Catatan</span>
           </button>
         </nav>
       </header>
@@ -264,7 +264,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         {activeTab === 'home' ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6 justify-center">
@@ -386,22 +386,20 @@ export default function App() {
                 inputMode="numeric"
                 value={expenseAmount}
                 onChange={(e) => setExpenseAmount(e.target.value)}
-                placeholder="Jumlah"
+                onFocus={() => {
+                  const num = parseInt(expenseAmount.replace(/\./g, '')) || 0
+                  setExpenseAmount(num > 0 ? String(num / 1000) : '')
+                }}
+                onBlur={() => {
+                  const num = parseInt(expenseAmount.replace(/\./g, '')) || 0
+                  if (num > 0) {
+                    setExpenseAmount((num * 1000).toLocaleString('id-ID'))
+                  }
+                }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                placeholder="Harga"
                 className="w-28 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-orange-400"
               />
-              <button
-                onClick={() => {
-                  if (!expenseName.trim() || !expenseAmount.trim()) return
-                  const num = parseInt(expenseAmount.replace(/\./g, '')) || 0
-                  if (num <= 0) return
-                  setExpenses((prev) => [...prev, { name: expenseName.trim(), amount: num }])
-                  setExpenseName('')
-                  setExpenseAmount('')
-                }}
-                className="px-3 py-2 bg-orange-500 text-white text-sm font-medium rounded-md hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer"
-              >
-                Tambah
-              </button>
             </div>
             <div className="h-52 overflow-y-auto border border-gray-200 rounded-lg p-3">
               {expenses.length === 0 ? (
@@ -423,6 +421,19 @@ export default function App() {
                 ))
               )}
             </div>
+            <button
+              onClick={() => {
+                if (!expenseName.trim() || !expenseAmount.trim()) return
+                const num = parseInt(expenseAmount.replace(/\./g, '')) || 0
+                if (num <= 0) return
+                setExpenses((prev) => [...prev, { name: expenseName.trim(), amount: num }])
+                setExpenseName('')
+                setExpenseAmount('')
+              }}
+              className="w-full px-3 py-2 bg-orange-500 text-white text-sm font-medium rounded-md hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer"
+            >
+              Tambah
+            </button>
             {expenses.length > 0 && (
               <div className="text-right">
                 <span className="text-sm text-gray-500">Total Pengeluaran: </span>
