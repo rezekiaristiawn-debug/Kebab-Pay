@@ -289,26 +289,24 @@ export default function App() {
                   ))
                 )}
               </div>
-              <div className="mt-4 pb-6 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-gray-800">Total Omset:</span>
-                  <div className="flex items-center">
-                    <span className="text-lg font-bold text-gray-800">Rp</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={totalInput !== null ? totalInput : total.toLocaleString('id-ID')}
-                      onFocus={() => setTotalInput(String(total / 1000))}
-                      onChange={(e) => setTotalInput(e.target.value)}
-                      onBlur={() => { setTotal((parseInt(totalInput?.replace(/\./g, '') ?? '0') || 0) * 1000); setTotalInput(null) }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="w-24 text-lg font-bold text-gray-800 text-center bg-transparent outline-none"
-                    />
-                  </div>
+              <div className="mt-4 pb-6 text-center">
+                <span className="text-sm text-gray-500">Total Omset</span>
+                <div className="flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-800">Rp</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={totalInput !== null ? totalInput : total.toLocaleString('id-ID')}
+                    onFocus={() => setTotalInput(String(total / 1000))}
+                    onChange={(e) => setTotalInput(e.target.value)}
+                    onBlur={() => { setTotal((parseInt(totalInput?.replace(/\./g, '') ?? '0') || 0) * 1000); setTotalInput(null) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                    className="w-24 text-lg font-bold text-gray-800 text-center bg-transparent outline-none"
+                  />
                 </div>
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                  <span className="text-sm font-semibold text-green-700">Gaji Kru (10%)</span>
-                  <span className="text-lg font-bold text-green-600">Rp {Math.floor(total * 0.1).toLocaleString('id-ID')}</span>
+                <div className="mt-1 inline-block bg-green-50 border border-green-200 rounded px-3 py-1">
+                  <span className="text-xs text-green-700">Gaji Kru: </span>
+                  <span className="text-sm font-bold text-green-600">Rp {Math.floor(total * 0.1).toLocaleString('id-ID')}</span>
                 </div>
               </div>
             </div>
