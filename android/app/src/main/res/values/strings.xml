@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kebab Order</string>
+    <string name="title_activity_main">Kebab Order</string>
+    <string name="package_name">com.kebab.app</string>
+    <string name="custom_url_scheme">com.kebab.app</string>
+</resources>
