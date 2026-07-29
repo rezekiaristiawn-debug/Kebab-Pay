@@ -67,10 +67,6 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
             <span className="font-bold text-gray-900">OMSET BERSIH</span>
             <span className="font-bold text-gray-900">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
           </div>
-          <div className="flex justify-between text-gray-500 mt-1">
-            <span>Item Terjual</span>
-            <span>{report.item_terjual} pcs</span>
-          </div>
         </div>
         <div className="text-center text-gray-400 text-[10px] mt-3 pt-2 border-t border-gray-200">
           Dicetak dari Kebab Gatsu App
