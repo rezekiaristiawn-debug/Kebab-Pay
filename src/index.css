@@ -33,3 +33,16 @@ input[type="number"] {
     display: none !important;
   }
 }
+
+body.print-all-active * {
+  visibility: visible;
+}
+body.print-all-active .print-all-receipt {
+  page-break-after: always;
+  padding: 24px 16px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+body.print-all-active .no-print {
+  display: none !important;
+}

@@ -85,6 +85,7 @@ export default function Laporan() {
   const [reports, setReports] = useState<ClosingReport[]>([])
   const [loading, setLoading] = useState(true)
   const [printReport, setPrintReport] = useState<ClosingReport | null>(null)
+  const [printAll, setPrintAll] = useState(false)
 
   useEffect(() => {
     supabase
@@ -100,6 +101,32 @@ export default function Laporan() {
         setLoading(false)
       })
   }, [])
+
+  useEffect(() => {
+    if (!printAll) return
+    document.body.classList.add('print-all-active')
+    const timer = setTimeout(() => window.print(), 100)
+    const handleAfterPrint = () => {
+      document.body.classList.remove('print-all-active')
+      setPrintAll(false)
+    }
+    window.addEventListener('afterprint', handleAfterPrint)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('afterprint', handleAfterPrint)
+      document.body.classList.remove('print-all-active')
+    }
+  }, [printAll])
+
+  if (printAll) {
+    return (
+      <div className="p-8">
+        {reports.map((r) => (
+          <ReceiptSimple key={r.id} report={r} />
+        ))}
+      </div>
+    )
+  }
 
   if (printReport) {
     return (
@@ -122,7 +149,17 @@ export default function Laporan() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-bold text-gray-900">Laporan dari Kru</h1>
-          <p className="text-sm text-gray-400">{reports.length} laporan</p>
+          <div className="flex items-center gap-2">
+            {reports.length > 0 && (
+              <button
+                onClick={() => setPrintAll(true)}
+                className="no-print px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
+              >
+                Print Semua
+              </button>
+            )}
+            <p className="text-sm text-gray-400">{reports.length} laporan</p>
+          </div>
         </div>
 
         {loading ? (
@@ -138,6 +175,65 @@ export default function Laporan() {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function ReceiptSimple({ report }: { report: ClosingReport }) {
+  const dateStr = new Date(report.tanggal).toLocaleDateString('id-ID', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  })
+
+  return (
+    <div className="print-all-receipt border-2 border-dashed border-gray-400 p-4 text-sm leading-snug mb-4">
+      <div className="text-center border-b border-dashed border-gray-400 pb-2 mb-2">
+        <p className="text-base font-bold tracking-wider">LAPORAN HARIAN</p>
+      </div>
+      <div className="mb-2 space-y-0.5">
+        <div className="flex">
+          <span className="w-16 text-gray-500">Lapak</span>
+          <span className="font-semibold">: {report.nama_lapak}</span>
+        </div>
+        <div className="flex">
+          <span className="w-16 text-gray-500">Tanggal</span>
+          <span>: {dateStr}</span>
+        </div>
+      </div>
+      <div className="border-t border-dashed border-gray-400 pt-1.5 mb-1.5 space-y-0.5">
+        <div className="flex justify-between">
+          <span className="text-gray-600">Omset Kotor</span>
+          <span className="font-semibold">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">Gaji Kru (10%)</span>
+          <span className="font-semibold">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
+        </div>
+        {report.pengeluaran.length > 0 && (
+          <div className="mt-1.5 pt-1.5 border-t border-dashed border-gray-300">
+            <p className="font-semibold text-gray-700 mb-0.5">Pengeluaran</p>
+            {report.pengeluaran.map((e, i) => (
+              <div key={i} className="flex justify-between ml-2 text-gray-600">
+                <span>{e.name}</span>
+                <span>Rp {e.amount.toLocaleString('id-ID')}</span>
+              </div>
+            ))}
+            <div className="flex justify-between font-semibold border-t border-dashed border-gray-300 mt-0.5 pt-0.5">
+              <span>Total</span>
+              <span>Rp {report.total_pengeluaran.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border-t-2 border-dashed border-gray-400 pt-1.5 mt-1.5">
+        <div className="flex justify-between text-base">
+          <span className="font-bold">OMSET BERSIH</span>
+          <span className="font-bold">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
+        </div>
+      </div>
+      <div className="text-center text-gray-400 text-[8px] mt-2 pt-1.5 border-t border-dashed border-gray-300">
+        Kebab Gatsu App
       </div>
     </div>
   )
