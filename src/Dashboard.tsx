@@ -26,7 +26,7 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
       <div ref={receiptRef} className="print-receipt bg-white max-w-sm mx-auto border border-gray-300 shadow-sm p-5 text-sm leading-relaxed">
         <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
           <p className="text-base font-bold tracking-wider text-gray-900">LAPORAN HARIAN</p>
-          <p className="text-xs font-medium text-gray-600 tracking-widest uppercase">Kebab Gatsu</p>
+          <p className="text-xs font-medium text-gray-600 tracking-widest uppercase">{report.nama_lapak}</p>
         </div>
         <div className="mb-3 text-gray-700 space-y-0.5">
           <div className="flex">
