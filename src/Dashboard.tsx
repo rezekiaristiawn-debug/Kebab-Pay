@@ -15,9 +15,12 @@ interface ClosingReport {
   created_at: string
 }
 
+type ViewMode = 'bulanan' | 'tahunan'
+
 export default function Dashboard() {
   const [reports, setReports] = useState<ClosingReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<ViewMode>('bulanan')
 
   useEffect(() => {
     supabase
@@ -34,20 +37,30 @@ export default function Dashboard() {
       })
   }, [])
 
-  const monthlyMap: Record<string, { month: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
+  const monthlyMap: Record<string, { label: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
+  const yearlyMap: Record<string, { label: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
   for (const r of reports) {
     const d = new Date(r.tanggal)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short' })
-    if (!monthlyMap[key]) {
-      monthlyMap[key] = { month: label, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+    const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const mLabel = d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short' })
+    if (!monthlyMap[mKey]) {
+      monthlyMap[mKey] = { label: mLabel, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
     }
-    monthlyMap[key].omsetKotor += r.omset_kotor
-    monthlyMap[key].omsetBersih += r.omset_bersih
-    monthlyMap[key].itemTerjual += r.item_terjual
-    monthlyMap[key].count++
+    monthlyMap[mKey].omsetKotor += r.omset_kotor
+    monthlyMap[mKey].omsetBersih += r.omset_bersih
+    monthlyMap[mKey].itemTerjual += r.item_terjual
+    monthlyMap[mKey].count++
+
+    const yKey = String(d.getFullYear())
+    if (!yearlyMap[yKey]) {
+      yearlyMap[yKey] = { label: yKey, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+    }
+    yearlyMap[yKey].omsetKotor += r.omset_kotor
+    yearlyMap[yKey].omsetBersih += r.omset_bersih
+    yearlyMap[yKey].itemTerjual += r.item_terjual
+    yearlyMap[yKey].count++
   }
-  const monthlyData = Object.values(monthlyMap)
+  const chartData = view === 'bulanan' ? Object.values(monthlyMap) : Object.values(yearlyMap)
 
   const totalOmsetKotor = reports.reduce((s, r) => s + r.omset_kotor, 0)
   const totalOmsetBersih = reports.reduce((s, r) => s + r.omset_bersih, 0)
@@ -56,7 +69,23 @@ export default function Dashboard() {
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-lg font-bold text-gray-900 mb-4">Dashboard Monitoring</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-bold text-gray-900">Dashboard Monitoring</h1>
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setView('bulanan')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${view === 'bulanan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Bulanan
+            </button>
+            <button
+              onClick={() => setView('tahunan')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${view === 'tahunan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Tahunan
+            </button>
+          </div>
+        </div>
 
         {loading ? (
           <p className="text-gray-500">Loading...</p>
@@ -85,11 +114,11 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih (Bulanan)</h2>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih</h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthlyData}>
+                  <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
                     <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                     <Tooltip />
                     <Line type="monotone" dataKey="omsetBersih" stroke="#16a34a" strokeWidth={2} name="Omset Bersih" dot={{ fill: '#16a34a' }} />
@@ -97,11 +126,11 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih (Bulanan)</h2>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih</h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
+                  <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
                     <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                     <Tooltip />
                     <Legend />
@@ -113,11 +142,11 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual (Bulanan)</h2>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual</h2>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
+                  <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
                   <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                   <Tooltip />
                   <Bar dataKey="itemTerjual" fill="#3b82f6" name="Item Terjual" radius={[4, 4, 0, 0]} />
@@ -126,12 +155,12 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Ringkasan</h2>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Ringkasan {view === 'bulanan' ? 'Bulanan' : 'Tahunan'}</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Bulan</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">{view === 'bulanan' ? 'Bulan' : 'Tahun'}</th>
                       <th className="text-right px-3 py-2 font-semibold text-gray-600">Laporan</th>
                       <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Kotor</th>
                       <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Bersih</th>
@@ -139,13 +168,13 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {monthlyData.map((m) => (
-                      <tr key={m.month} className="border-t border-gray-100">
-                        <td className="px-3 py-2 font-medium text-gray-800">{m.month}</td>
-                        <td className="px-3 py-2 text-right text-gray-600">{m.count}</td>
-                        <td className="px-3 py-2 text-right text-orange-600">Rp {m.omsetKotor.toLocaleString('id-ID')}</td>
-                        <td className="px-3 py-2 text-right text-green-600">Rp {m.omsetBersih.toLocaleString('id-ID')}</td>
-                        <td className="px-3 py-2 text-right text-blue-600">{m.itemTerjual}</td>
+                    {chartData.map((d) => (
+                      <tr key={d.label} className="border-t border-gray-100">
+                        <td className="px-3 py-2 font-medium text-gray-800">{d.label}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{d.count}</td>
+                        <td className="px-3 py-2 text-right text-orange-600">Rp {d.omsetKotor.toLocaleString('id-ID')}</td>
+                        <td className="px-3 py-2 text-right text-green-600">Rp {d.omsetBersih.toLocaleString('id-ID')}</td>
+                        <td className="px-3 py-2 text-right text-blue-600">{d.itemTerjual}</td>
                       </tr>
                     ))}
                   </tbody>
