@@ -230,30 +230,30 @@ export default function App() {
         <nav className="flex items-center gap-0.5 sm:gap-1">
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'home' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <HomeIcon />
-            <span className="hidden sm:inline">Home</span>
+            <span>Home</span>
           </button>
           <button
             onClick={() => setActiveTab('stok')}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'stok' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <StockIcon />
-            <span className="hidden sm:inline">Stok</span>
+            <span>Stok</span>
           </button>
           <button
             onClick={() => setActiveTab('catatan')}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
               activeTab === 'catatan' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <NotesIcon />
-            <span className="hidden sm:inline">Catatan</span>
+            <span>Catatan</span>
           </button>
         </nav>
       </header>
