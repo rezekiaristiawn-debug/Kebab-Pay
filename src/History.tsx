@@ -40,29 +40,12 @@ export default function History() {
 
   useEffect(() => { load() }, [load])
 
-  const handleReset = async () => {
-    if (!confirm('Reset semua history? Data akan dihapus permanen.')) return
-    const ids = reports.map((r) => r.id)
-    if (ids.length === 0) return
-    const { error } = await supabase.from('closing_reports').delete().in('id', ids)
-    if (error) { alert('Gagal reset: ' + error.message); return }
-    setReports([])
-  }
-
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-bold text-gray-900">History</h1>
           <div className="flex items-center gap-2">
-            {reports.length > 0 && (
-              <button
-                onClick={handleReset}
-                className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors cursor-pointer"
-              >
-                Reset
-              </button>
-            )}
             <p className="text-sm text-gray-400">{reports.length} laporan</p>
           </div>
         </div>
