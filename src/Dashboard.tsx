@@ -125,7 +125,7 @@ export default function Dashboard({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-gray-800">Dashboard Closing</h1>
           <button
@@ -141,9 +141,9 @@ export default function Dashboard({ onBack }: { onBack: () => void }) {
         ) : reports.length === 0 ? (
           <p className="text-gray-500">Belum ada data closing.</p>
         ) : (
-          <div className="space-y-6">
+          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
             {reports.map((r) => (
-              <div key={r.id}>
+              <div key={r.id} className="flex-none">
                 <Receipt report={r} onPrint={() => setPrintReport(r)} />
               </div>
             ))}
