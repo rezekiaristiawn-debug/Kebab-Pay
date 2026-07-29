@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 
-export type Page = 'dashboard' | 'laporan'
+export type Page = 'dashboard' | 'laporan' | 'arsip'
 
 interface LayoutProps {
   children: ReactNode
@@ -24,9 +24,18 @@ function ReportIcon() {
   )
 }
 
+function ArchiveIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375ZM3.75 10.5a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.75 14.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.75 18a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15A.75.75 0 0 1 3.75 18Z" />
+    </svg>
+  )
+}
+
 const navItems: { id: Page; label: string; icon: () => ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: ChartIcon },
   { id: 'laporan', label: 'Laporan', icon: ReportIcon },
+  { id: 'arsip', label: 'Arsip', icon: ArchiveIcon },
 ]
 
 export default function Layout({ children, activePage, onNavigate }: LayoutProps) {
