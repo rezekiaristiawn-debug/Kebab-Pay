@@ -1,4 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { supabase } from './lib/supabase'
+import Dashboard from './Dashboard'
 
 interface MenuItem {
   id: number
@@ -98,6 +100,7 @@ function NotesIcon() {
 }
 
 export default function App() {
+  const [path, setPath] = useState(window.location.pathname)
   const [activeTab, setActiveTab] = useState<Tab>('home')
   const [notes, setNotes] = useState<{ name: string; price: string; priceNum: number }[]>([])
   const [total, setTotal] = useState(0)
@@ -117,6 +120,12 @@ export default function App() {
   const [expenseAmount, setExpenseAmount] = useState('')
   const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const handlePop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [])
 
   const handleClick = useCallback((item: MenuItem) => {
     if (orderHistory.length === 0) {
@@ -203,19 +212,21 @@ export default function App() {
       total_pengeluaran: totalPengeluaran,
       omset_bersih: total - gaji - totalPengeluaran,
       item_terjual: notes.length,
-      sisa_stock: stock,
     }
     try {
-      // TODO: ganti ke endpoint backend yang sesungguhnya
-      console.log('Payload closing:', payload)
-      await new Promise((r) => setTimeout(r, 1000))
+      const { error } = await supabase.from('closing_reports').insert([payload])
+      if (error) throw error
       alert(`Data "${lapakName}" berhasil dikirim!`)
       setShowClosing(false)
-    } catch {
-      alert('Gagal mengirim data, coba lagi.')
+    } catch (err) {
+      alert('Gagal mengirim data: ' + (err instanceof Error ? err.message : 'unknown error'))
     } finally {
       setSending(false)
     }
+  }
+
+  if (path === '/dashboard') {
+    return <Dashboard onBack={() => { window.history.pushState({}, '', '/'); setPath('/') }} />
   }
 
   return (
