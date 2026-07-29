@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Dashboard from './Dashboard'
 import Laporan from './Laporan'
-import Arsip from './Arsip'
+import History from './History'
 import Layout, { type Page } from './Layout'
 
 export default function App() {
@@ -10,12 +10,12 @@ export default function App() {
   useEffect(() => {
     const path = window.location.pathname
     if (path === '/laporan') setActivePage('laporan')
-    else if (path === '/arsip') setActivePage('arsip')
+    else if (path === '/history') setActivePage('history')
   }, [])
 
   const handleNavigate = (page: Page) => {
     setActivePage(page)
-    const map: Record<Page, string> = { dashboard: '/', laporan: '/laporan', arsip: '/arsip' }
+    const map: Record<Page, string> = { dashboard: '/', laporan: '/laporan', history: '/history' }
     window.history.pushState(null, '', map[page])
   }
 
@@ -23,7 +23,7 @@ export default function App() {
     switch (activePage) {
       case 'dashboard': return <Dashboard />
       case 'laporan': return <Laporan />
-      case 'arsip': return <Arsip />
+      case 'history': return <History />
     }
   }
 

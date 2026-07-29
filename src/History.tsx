@@ -14,7 +14,7 @@ interface ClosingReport {
   created_at: string
 }
 
-export default function Arsip() {
+export default function History() {
   const [reports, setReports] = useState<ClosingReport[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -40,35 +40,41 @@ export default function Arsip() {
 
   useEffect(() => { load() }, [load])
 
-  const handleRestore = async (id: number) => {
-    const { error } = await supabase.from('closing_reports').update({ archived: false }).eq('id', id)
-    if (error) { alert('Gagal mengembalikan: ' + error.message); return }
-    setReports((prev) => prev.filter((r) => r.id !== id))
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus laporan ini permanen?')) return
-    const { error } = await supabase.from('closing_reports').delete().eq('id', id)
-    if (error) { alert('Gagal menghapus: ' + error.message); return }
-    setReports((prev) => prev.filter((r) => r.id !== id))
+  const handleReset = async () => {
+    if (!confirm('Reset semua history? Data akan dihapus permanen.')) return
+    const ids = reports.map((r) => r.id)
+    if (ids.length === 0) return
+    const { error } = await supabase.from('closing_reports').delete().in('id', ids)
+    if (error) { alert('Gagal reset: ' + error.message); return }
+    setReports([])
   }
 
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900">Arsip Laporan</h1>
-          <p className="text-sm text-gray-400">{reports.length} laporan</p>
+          <h1 className="text-lg font-bold text-gray-900">History</h1>
+          <div className="flex items-center gap-2">
+            {reports.length > 0 && (
+              <button
+                onClick={handleReset}
+                className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
+            <p className="text-sm text-gray-400">{reports.length} laporan</p>
+          </div>
         </div>
 
         {loading ? (
           <p className="text-gray-500">Loading...</p>
         ) : reports.length === 0 ? (
-          <p className="text-gray-500">Belum ada laporan di arsip.</p>
+          <p className="text-gray-500">Belum ada history.</p>
         ) : (
           <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
             {reports.map((r) => (
-              <div key={r.id} className="print-receipt bg-white w-56 border-2 border-dashed border-gray-300 p-3 text-xs leading-snug opacity-80">
+              <div key={r.id} className="bg-white w-56 border-2 border-dashed border-gray-300 p-3 text-xs leading-snug opacity-80">
                 <div className="text-center border-b border-dashed border-gray-300 pb-2 mb-2">
                   <p className="text-sm font-bold tracking-wider text-gray-700">LAPORAN HARIAN</p>
                 </div>
@@ -97,20 +103,6 @@ export default function Arsip() {
                     <span className="font-bold text-gray-700">OMSET BERSIH</span>
                     <span className="font-bold text-gray-700">Rp {r.omset_bersih.toLocaleString('id-ID')}</span>
                   </div>
-                </div>
-                <div className="flex gap-1 mt-2 justify-end">
-                  <button
-                    onClick={() => handleRestore(r.id)}
-                    className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-medium rounded hover:bg-blue-700 transition-colors cursor-pointer"
-                  >
-                    Kembalikan
-                  </button>
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-medium rounded hover:bg-red-700 transition-colors cursor-pointer"
-                  >
-                    Hapus
-                  </button>
                 </div>
               </div>
             ))}

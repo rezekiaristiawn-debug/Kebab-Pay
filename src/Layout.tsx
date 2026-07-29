@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 
-export type Page = 'dashboard' | 'laporan' | 'arsip'
+export type Page = 'dashboard' | 'laporan' | 'history'
 
 interface LayoutProps {
   children: ReactNode
@@ -35,7 +35,7 @@ function ArchiveIcon() {
 const navItems: { id: Page; label: string; icon: () => ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: ChartIcon },
   { id: 'laporan', label: 'Laporan', icon: ReportIcon },
-  { id: 'arsip', label: 'Arsip', icon: ArchiveIcon },
+  { id: 'history', label: 'History', icon: ArchiveIcon },
 ]
 
 export default function Layout({ children, activePage, onNavigate }: LayoutProps) {

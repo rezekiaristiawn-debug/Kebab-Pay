@@ -21,11 +21,9 @@ function dateStr(d: Date) {
   })
 }
 
-function ReceiptCard({ report, onPrint, onArchive, onDelete }: {
+function ReceiptCard({ report, onPrint }: {
   report: ClosingReport
   onPrint: () => void
-  onArchive: () => void
-  onDelete: () => void
 }) {
   return (
     <div className="bg-white w-56 border-2 border-dashed border-gray-400 p-3 text-xs leading-snug">
@@ -59,12 +57,6 @@ function ReceiptCard({ report, onPrint, onArchive, onDelete }: {
         </div>
       </div>
       <div className="flex gap-1 mt-2 justify-end no-print">
-        <button onClick={onArchive} className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-medium rounded hover:bg-blue-200 transition-colors cursor-pointer">
-          Arsip
-        </button>
-        <button onClick={onDelete} className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-medium rounded hover:bg-red-200 transition-colors cursor-pointer">
-          Hapus
-        </button>
         <button onClick={onPrint} className="px-2 py-0.5 bg-gray-900 text-white text-[10px] font-medium rounded hover:bg-gray-800 transition-colors cursor-pointer">
           Print
         </button>
@@ -98,19 +90,6 @@ export default function Laporan() {
   }, [])
 
   useEffect(() => { load() }, [load])
-
-  const handleArchive = async (id: number) => {
-    const { error } = await supabase.from('closing_reports').update({ archived: true }).eq('id', id)
-    if (error) { alert('Gagal mengarsip: ' + error.message); return }
-    setReports((prev) => prev.filter((r) => r.id !== id))
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus laporan ini permanen?')) return
-    const { error } = await supabase.from('closing_reports').delete().eq('id', id)
-    if (error) { alert('Gagal menghapus: ' + error.message); return }
-    setReports((prev) => prev.filter((r) => r.id !== id))
-  }
 
   const handlePrintOne = async (report: ClosingReport) => {
     await supabase.from('closing_reports').update({ archived: true }).eq('id', report.id)
@@ -147,7 +126,7 @@ export default function Laporan() {
                 onClick={handlePrintAll}
                 className="no-print px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md hover:bg-gray-800 transition-colors cursor-pointer"
               >
-                Print & Arsip Semua
+                Print Semua
               </button>
             )}
             <p className="text-sm text-gray-400">{reports.length} laporan</p>
@@ -165,8 +144,6 @@ export default function Laporan() {
                 <ReceiptCard
                   report={r}
                   onPrint={() => handlePrintOne(r)}
-                  onArchive={() => handleArchive(r.id)}
-                  onDelete={() => handleDelete(r.id)}
                 />
               </div>
             ))}
