@@ -21,58 +21,58 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
   })
 
   return (
-    <div className="print-receipt bg-white max-w-sm mx-auto border border-gray-300 shadow-sm p-5 text-sm leading-relaxed">
-      <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
-        <p className="text-base font-bold tracking-wider text-gray-900">LAPORAN HARIAN</p>
+    <div className="print-receipt bg-white w-56 mx-auto border-2 border-dashed border-gray-400 p-3 text-xs leading-snug">
+      <div className="text-center border-b border-dashed border-gray-400 pb-2 mb-2">
+        <p className="text-sm font-bold tracking-wider text-gray-900">LAPORAN HARIAN</p>
       </div>
-      <div className="mb-3 text-gray-700 space-y-0.5">
+      <div className="mb-2 text-gray-700 space-y-0.5">
         <div className="flex">
-          <span className="w-16 text-gray-500">Lapak</span>
+          <span className="w-14 text-gray-500">Lapak</span>
           <span className="font-semibold">: {report.nama_lapak}</span>
         </div>
         <div className="flex">
-          <span className="w-16 text-gray-500">Tanggal</span>
-          <span>: {dateStr}</span>
+          <span className="w-14 text-gray-500">Tanggal</span>
+          <span className="truncate">: {dateStr}</span>
         </div>
       </div>
-      <div className="border-t border-gray-900 pt-2 mb-2 space-y-1">
+      <div className="border-t border-dashed border-gray-400 pt-1.5 mb-1.5 space-y-0.5">
         <div className="flex justify-between">
-          <span className="text-gray-700">Omset Kotor</span>
-          <span className="font-bold text-gray-900">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
+          <span className="text-gray-600">Omset Kotor</span>
+          <span className="font-semibold text-gray-900">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-700">Gaji Kru (10%)</span>
-          <span className="font-bold text-gray-900">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
+          <span className="text-gray-600">Gaji Kru (10%)</span>
+          <span className="font-semibold text-gray-900">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
         </div>
         {report.pengeluaran.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-gray-200">
-            <p className="font-semibold text-gray-700 mb-1">Pengeluaran</p>
+          <div className="mt-1.5 pt-1.5 border-t border-dashed border-gray-300">
+            <p className="font-semibold text-gray-700 mb-0.5">Pengeluaran</p>
             {report.pengeluaran.map((e, i) => (
-              <div key={i} className="flex justify-between ml-3 text-gray-600">
+              <div key={i} className="flex justify-between ml-2 text-gray-600">
                 <span>{e.name}</span>
                 <span>Rp {e.amount.toLocaleString('id-ID')}</span>
               </div>
             ))}
-            <div className="flex justify-between font-bold text-gray-800 border-t border-gray-200 mt-1 pt-1">
-              <span>Total Pengeluaran</span>
+            <div className="flex justify-between font-semibold text-gray-800 border-t border-dashed border-gray-300 mt-0.5 pt-0.5">
+              <span>Total</span>
               <span>Rp {report.total_pengeluaran.toLocaleString('id-ID')}</span>
             </div>
           </div>
         )}
       </div>
-      <div className="border-t-2 border-gray-900 pt-2 mt-2">
-        <div className="flex justify-between text-base">
+      <div className="border-t-2 border-dashed border-gray-400 pt-1.5 mt-1.5">
+        <div className="flex justify-between text-sm">
           <span className="font-bold text-gray-900">OMSET BERSIH</span>
           <span className="font-bold text-gray-900">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
         </div>
       </div>
-      <div className="text-center text-gray-400 text-[10px] mt-3 pt-2 border-t border-gray-200">
-        Dicetak dari Kebab Gatsu App
+      <div className="text-center text-gray-400 text-[8px] mt-2 pt-1.5 border-t border-dashed border-gray-300">
+        Kebab Gatsu App
       </div>
-      <div className="no-print text-right mt-2">
+      <div className="no-print text-right mt-1.5">
         <button
           onClick={onPrint}
-          className="px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
+          className="px-2 py-0.5 bg-gray-900 text-white text-[10px] font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
         >
           Print
         </button>
@@ -130,7 +130,7 @@ export default function Laporan() {
         ) : reports.length === 0 ? (
           <p className="text-gray-500">Belum ada laporan masuk.</p>
         ) : (
-          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+          <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
             {reports.map((r) => (
               <div key={r.id} className="flex-none">
                 <Receipt report={r} onPrint={() => setPrintReport(r)} />
