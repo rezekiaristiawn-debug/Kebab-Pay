@@ -124,44 +124,38 @@ export default function Laporan() {
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900">Laporan dari Kru</h1>
-          <div className="flex items-center gap-2">
-            {reports.length > 0 && (
-              <>
-                <button
-                  onClick={handleReset}
-                  className="no-print px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors cursor-pointer"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={handlePrintAll}
-                  className="no-print px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md hover:bg-gray-800 transition-colors cursor-pointer"
-                >
-                  Print Semua
-                </button>
-              </>
-            )}
-            <p className="text-sm text-gray-400">{reports.length} laporan</p>
-          </div>
-        </div>
-
         {loading ? (
           <p className="text-gray-500">Loading...</p>
         ) : reports.length === 0 ? (
           <p className="text-gray-500">Belum ada laporan masuk.</p>
         ) : (
-          <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-            {reports.map((r) => (
-              <div key={r.id} className="flex-none">
-                <ReceiptCard
-                  report={r}
-                  onPrint={() => handlePrintOne(r)}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+              {reports.map((r) => (
+                <div key={r.id} className="flex-none">
+                  <ReceiptCard
+                    report={r}
+                    onPrint={() => handlePrintOne(r)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-3 mt-6 no-print">
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                onClick={handlePrintAll}
+                className="px-4 py-2 bg-gray-900 text-white text-xs font-medium rounded-md hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                Print Semua
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
