@@ -79,7 +79,7 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
       </div>
       <button
         onClick={onPrint}
-        className="no-print mt-2 w-full py-2.5 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
+        className="no-print mt-2 ml-auto px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
       >
         Print
       </button>
@@ -96,7 +96,7 @@ export default function Dashboard({ onBack }: { onBack: () => void }) {
     supabase
       .from('closing_reports')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (error) {
           alert('Gagal load data: ' + error.message)
