@@ -71,13 +71,15 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
         <div className="text-center text-gray-400 text-[10px] mt-3 pt-2 border-t border-gray-200">
           Dicetak dari Kebab Gatsu App
         </div>
+        <div className="no-print text-right mt-2">
+          <button
+            onClick={onPrint}
+            className="px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
+          >
+            Print
+          </button>
+        </div>
       </div>
-      <button
-        onClick={onPrint}
-        className="no-print mt-2 ml-auto px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
-      >
-        Print
-      </button>
     </div>
   )
 }
