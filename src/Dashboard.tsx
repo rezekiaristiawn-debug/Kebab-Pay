@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
@@ -15,80 +15,9 @@ interface ClosingReport {
   created_at: string
 }
 
-function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => void }) {
-  const receiptRef = useRef<HTMLDivElement>(null)
-  const dateStr = new Date(report.tanggal).toLocaleDateString('id-ID', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  })
-
-  return (
-    <div>
-      <div ref={receiptRef} className="print-receipt bg-white max-w-sm mx-auto border border-gray-300 shadow-sm p-5 text-sm leading-relaxed">
-        <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
-          <p className="text-base font-bold tracking-wider text-gray-900">LAPORAN HARIAN</p>
-        </div>
-        <div className="mb-3 text-gray-700 space-y-0.5">
-          <div className="flex">
-            <span className="w-16 text-gray-500">Lapak</span>
-            <span className="font-semibold">: {report.nama_lapak}</span>
-          </div>
-          <div className="flex">
-            <span className="w-16 text-gray-500">Tanggal</span>
-            <span>: {dateStr}</span>
-          </div>
-        </div>
-        <div className="border-t border-gray-900 pt-2 mb-2 space-y-1">
-          <div className="flex justify-between">
-            <span className="text-gray-700">Omset Kotor</span>
-            <span className="font-bold text-gray-900">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-700">Gaji Kru (10%)</span>
-            <span className="font-bold text-gray-900">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
-          </div>
-          {report.pengeluaran.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <p className="font-semibold text-gray-700 mb-1">Pengeluaran</p>
-              {report.pengeluaran.map((e, i) => (
-                <div key={i} className="flex justify-between ml-3 text-gray-600">
-                  <span>{e.name}</span>
-                  <span>Rp {e.amount.toLocaleString('id-ID')}</span>
-                </div>
-              ))}
-              <div className="flex justify-between font-bold text-gray-800 border-t border-gray-200 mt-1 pt-1">
-                <span>Total Pengeluaran</span>
-                <span>Rp {report.total_pengeluaran.toLocaleString('id-ID')}</span>
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="border-t-2 border-gray-900 pt-2 mt-2">
-          <div className="flex justify-between text-base">
-            <span className="font-bold text-gray-900">OMSET BERSIH</span>
-            <span className="font-bold text-gray-900">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
-          </div>
-        </div>
-        <div className="text-center text-gray-400 text-[10px] mt-3 pt-2 border-t border-gray-200">
-          Dicetak dari Kebab Gatsu App
-        </div>
-        <div className="no-print text-right mt-2">
-          <button
-            onClick={onPrint}
-            className="px-3 py-1 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
-          >
-            Print
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Dashboard() {
   const [reports, setReports] = useState<ClosingReport[]>([])
   const [loading, setLoading] = useState(true)
-  const [printReport, setPrintReport] = useState<ClosingReport | null>(null)
 
   useEffect(() => {
     supabase
@@ -105,36 +34,29 @@ export default function Dashboard() {
       })
   }, [])
 
-  if (printReport) {
-    return (
-      <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
-        <div className="no-print mb-3">
-          <button
-            onClick={() => setPrintReport(null)}
-            className="text-sm px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-          >
-            Kembali
-          </button>
-        </div>
-        <Receipt report={printReport} onPrint={() => window.print()} />
-      </div>
-    )
+  const monthlyMap: Record<string, { month: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
+  for (const r of reports) {
+    const d = new Date(r.tanggal)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short' })
+    if (!monthlyMap[key]) {
+      monthlyMap[key] = { month: label, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+    }
+    monthlyMap[key].omsetKotor += r.omset_kotor
+    monthlyMap[key].omsetBersih += r.omset_bersih
+    monthlyMap[key].itemTerjual += r.item_terjual
+    monthlyMap[key].count++
   }
-
-  const chartData = reports.map((r) => ({
-    date: new Date(r.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-    omsetKotor: r.omset_kotor,
-    omsetBersih: r.omset_bersih,
-    itemTerjual: r.item_terjual,
-  }))
+  const monthlyData = Object.values(monthlyMap)
 
   const totalOmsetKotor = reports.reduce((s, r) => s + r.omset_kotor, 0)
   const totalOmsetBersih = reports.reduce((s, r) => s + r.omset_bersih, 0)
+  const totalItems = reports.reduce((s, r) => s + r.item_terjual, 0)
 
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-lg font-bold text-gray-900 mb-4">Dashboard</h1>
+        <h1 className="text-lg font-bold text-gray-900 mb-4">Dashboard Monitoring</h1>
 
         {loading ? (
           <p className="text-gray-500">Loading...</p>
@@ -142,7 +64,7 @@ export default function Dashboard() {
           <p className="text-gray-500">Belum ada data closing.</p>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <p className="text-xs text-gray-500">Total Laporan</p>
                 <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
@@ -155,15 +77,19 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-500">Omset Bersih</p>
                 <p className="text-2xl font-bold text-green-600">Rp {totalOmsetBersih.toLocaleString('id-ID')}</p>
               </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Total Item Terjual</p>
+                <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih</h2>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData}>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih (Bulanan)</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
                     <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                     <Tooltip />
                     <Line type="monotone" dataKey="omsetBersih" stroke="#16a34a" strokeWidth={2} name="Omset Bersih" dot={{ fill: '#16a34a' }} />
@@ -171,11 +97,11 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih</h2>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={chartData}>
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih (Bulanan)</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
                     <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                     <Tooltip />
                     <Legend />
@@ -187,28 +113,44 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual</h2>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={chartData}>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual (Bulanan)</h2>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                  <XAxis dataKey="month" fontSize={12} tick={{ fill: '#6b7280' }} />
                   <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="itemTerjual" stroke="#3b82f6" strokeWidth={2} name="Item Terjual" dot={{ fill: '#3b82f6' }} />
-                </LineChart>
+                  <Bar dataKey="itemTerjual" fill="#3b82f6" name="Item Terjual" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-700">Riwayat Laporan</h2>
-              <p className="text-xs text-gray-400">{reports.length} laporan</p>
-            </div>
-            <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-              {reports.map((r) => (
-                <div key={r.id} className="flex-none">
-                  <Receipt report={r} onPrint={() => setPrintReport(r)} />
-                </div>
-              ))}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Ringkasan</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Bulan</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Laporan</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Kotor</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Bersih</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Item Terjual</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyData.map((m) => (
+                      <tr key={m.month} className="border-t border-gray-100">
+                        <td className="px-3 py-2 font-medium text-gray-800">{m.month}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{m.count}</td>
+                        <td className="px-3 py-2 text-right text-orange-600">Rp {m.omsetKotor.toLocaleString('id-ID')}</td>
+                        <td className="px-3 py-2 text-right text-green-600">Rp {m.omsetBersih.toLocaleString('id-ID')}</td>
+                        <td className="px-3 py-2 text-right text-blue-600">{m.itemTerjual}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         )}
