@@ -84,7 +84,7 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
   )
 }
 
-export default function Dashboard({ onBack }: { onBack: () => void }) {
+export default function Dashboard() {
   const [reports, setReports] = useState<ClosingReport[]>([])
   const [loading, setLoading] = useState(true)
   const [printReport, setPrintReport] = useState<ClosingReport | null>(null)
@@ -120,17 +120,14 @@ export default function Dashboard({ onBack }: { onBack: () => void }) {
     )
   }
 
+  const totalOmset = reports.reduce((s, r) => s + r.omset_bersih, 0)
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-gray-800">Dashboard Closing</h1>
-          <button
-            onClick={onBack}
-            className="text-sm px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-          >
-            Kembali
-          </button>
+        <div className="mb-4">
+          <h1 className="text-lg font-bold text-gray-900">Dashboard Closing</h1>
+          <p className="text-sm text-gray-500">{reports.length} laporan · Total Omset Bersih Rp {totalOmset.toLocaleString('id-ID')}</p>
         </div>
 
         {loading ? (

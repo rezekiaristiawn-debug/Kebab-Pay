@@ -226,7 +226,7 @@ export default function App() {
   }
 
   if (path === '/dashboard') {
-    return <Dashboard onBack={() => { window.history.pushState({}, '', '/'); setPath('/') }} />
+    return <Dashboard />
   }
 
   return (
