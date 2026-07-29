@@ -23,57 +23,63 @@ function Receipt({ report, onPrint }: { report: ClosingReport; onPrint: () => vo
 
   return (
     <div>
-      <div ref={receiptRef} className="print-receipt bg-white max-w-sm mx-auto border-2 border-dashed border-gray-300 p-4 font-mono text-sm leading-relaxed">
-        <div className="text-center border-b-2 border-black pb-2 mb-2">
-          <p className="text-base font-bold tracking-widest">LAPORAN HARIAN</p>
-          <p className="text-xs">KEBAB GATSU</p>
+      <div ref={receiptRef} className="print-receipt bg-white max-w-sm mx-auto border border-gray-300 shadow-sm p-5 text-sm leading-relaxed">
+        <div className="text-center border-b-2 border-gray-900 pb-3 mb-3">
+          <p className="text-base font-bold tracking-wider text-gray-900">LAPORAN HARIAN</p>
+          <p className="text-xs font-medium text-gray-600 tracking-widest uppercase">Kebab Gatsu</p>
         </div>
-        <div className="mb-2">
-          <p>Lapak    : {report.nama_lapak}</p>
-          <p>Tanggal  : {dateStr}</p>
+        <div className="mb-3 text-gray-700 space-y-0.5">
+          <div className="flex">
+            <span className="w-16 text-gray-500">Lapak</span>
+            <span className="font-semibold">: {report.nama_lapak}</span>
+          </div>
+          <div className="flex">
+            <span className="w-16 text-gray-500">Tanggal</span>
+            <span>: {dateStr}</span>
+          </div>
         </div>
-        <div className="border-t border-black pt-1 mb-1">
+        <div className="border-t border-gray-900 pt-2 mb-2 space-y-1">
           <div className="flex justify-between">
-            <span>Omset Kotor</span>
-            <span className="font-bold">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
+            <span className="text-gray-700">Omset Kotor</span>
+            <span className="font-bold text-gray-900">Rp {report.omset_kotor.toLocaleString('id-ID')}</span>
           </div>
           <div className="flex justify-between">
-            <span>Gaji Kru (10%)</span>
-            <span className="font-bold">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
+            <span className="text-gray-700">Gaji Kru (10%)</span>
+            <span className="font-bold text-gray-900">Rp {report.gaji_kru.toLocaleString('id-ID')}</span>
           </div>
           {report.pengeluaran.length > 0 && (
-            <div className="mt-1 pt-1 border-t border-gray-300">
-              <p className="font-semibold mb-0.5">Pengeluaran:</p>
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <p className="font-semibold text-gray-700 mb-1">Pengeluaran</p>
               {report.pengeluaran.map((e, i) => (
-                <div key={i} className="flex justify-between text-xs ml-2">
-                  <span>- {e.name}</span>
+                <div key={i} className="flex justify-between ml-3 text-gray-600">
+                  <span>{e.name}</span>
                   <span>Rp {e.amount.toLocaleString('id-ID')}</span>
                 </div>
               ))}
-              <div className="flex justify-between text-xs font-bold ml-2">
-                <span>Total</span>
+              <div className="flex justify-between font-bold text-gray-800 border-t border-gray-200 mt-1 pt-1">
+                <span>Total Pengeluaran</span>
                 <span>Rp {report.total_pengeluaran.toLocaleString('id-ID')}</span>
               </div>
             </div>
           )}
         </div>
-        <div className="border-t-2 border-black pt-1 mt-1">
+        <div className="border-t-2 border-gray-900 pt-2 mt-2">
           <div className="flex justify-between text-base">
-            <span className="font-bold">OMSET BERSIH</span>
-            <span className="font-bold">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
+            <span className="font-bold text-gray-900">OMSET BERSIH</span>
+            <span className="font-bold text-gray-900">Rp {report.omset_bersih.toLocaleString('id-ID')}</span>
           </div>
-          <div className="flex justify-between text-xs mt-1">
+          <div className="flex justify-between text-gray-500 mt-1">
             <span>Item Terjual</span>
             <span>{report.item_terjual} pcs</span>
           </div>
         </div>
-        <div className="text-center text-[10px] text-gray-400 mt-2 pt-1 border-t border-gray-200">
+        <div className="text-center text-gray-400 text-[10px] mt-3 pt-2 border-t border-gray-200">
           Dicetak dari Kebab Gatsu App
         </div>
       </div>
       <button
         onClick={onPrint}
-        className="no-print mt-2 w-full py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 cursor-pointer"
+        className="no-print mt-2 w-full py-2.5 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:bg-gray-700 transition-colors cursor-pointer"
       >
         Print
       </button>
