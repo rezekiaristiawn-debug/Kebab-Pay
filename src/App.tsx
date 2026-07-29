@@ -219,7 +219,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-dvh flex flex-col bg-white">
       <header className="flex-none px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
           <img src="/asset/logokebabgatsu.png" alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
