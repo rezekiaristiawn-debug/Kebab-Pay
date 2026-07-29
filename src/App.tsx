@@ -227,7 +227,7 @@ export default function App() {
             Kebab Gatsu
           </h1>
         </div>
-        <nav className="flex items-center gap-0.5 sm:gap-1">
+        <nav className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setActiveTab('home')}
             className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
