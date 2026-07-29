@@ -17,8 +17,13 @@ interface ClosingReport {
 
 type ViewMode = 'bulanan' | 'tahunan'
 
+const CACHE_KEY = 'kebab_dashboard'
+
 export default function Dashboard() {
-  const [reports, setReports] = useState<ClosingReport[]>([])
+  const [reports, setReports] = useState<ClosingReport[]>(() => {
+    const cached = localStorage.getItem(CACHE_KEY)
+    return cached ? JSON.parse(cached) : []
+  })
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<ViewMode>('bulanan')
 
@@ -28,10 +33,9 @@ export default function Dashboard() {
       .select('*')
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
-        if (error) {
-          alert('Gagal load data: ' + error.message)
-        } else if (data) {
+        if (!error && data) {
           setReports(data as ClosingReport[])
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data))
         }
         setLoading(false)
       })

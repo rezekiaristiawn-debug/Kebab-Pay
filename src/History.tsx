@@ -14,8 +14,13 @@ interface ClosingReport {
   created_at: string
 }
 
+const CACHE_KEY = 'kebab_history'
+
 export default function History() {
-  const [reports, setReports] = useState<ClosingReport[]>([])
+  const [reports, setReports] = useState<ClosingReport[]>(() => {
+    const cached = localStorage.getItem(CACHE_KEY)
+    return cached ? JSON.parse(cached) : []
+  })
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(() => {
@@ -28,12 +33,12 @@ export default function History() {
       .then(({ data, error }) => {
         if (error) {
           supabase.from('closing_reports').select('*').order('created_at', { ascending: false }).then(({ data: d2 }) => {
-            if (d2) setReports(d2 as ClosingReport[])
+            if (d2) { setReports(d2 as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(d2)) }
             setLoading(false)
           })
           return
         }
-        if (data) setReports(data as ClosingReport[])
+        if (data) { setReports(data as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(data)) }
         setLoading(false)
       })
   }, [])
