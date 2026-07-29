@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import Dashboard from './Dashboard'
+import Layout, { type Page } from './Layout'
 
 interface MenuItem {
   id: number
@@ -72,36 +73,8 @@ function deductStock(
   })
 }
 
-type Tab = 'home' | 'stok' | 'catatan'
-
-function HomeIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-      <path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 1-1.06 1.06l-.97-.97V19.5a2.25 2.25 0 0 1-2.25 2.25H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H6.56A2.25 2.25 0 0 1 4.31 19.5v-6.87l-.97.97a.75.75 0 0 1-1.06-1.06l8.69-8.69Z" />
-    </svg>
-  )
-}
-
-function StockIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-      <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375ZM19.5 9.75c0-1.036-.84-1.875-1.875-1.875H6.375c-1.036 0-1.875.84-1.875 1.875v.75c0 1.035.84 1.875 1.875 1.875h11.25c1.035 0 1.875-.84 1.875-1.875v-.75ZM3.75 15c0-1.036-.84-1.875-1.875-1.875S0 13.964 0 15v.75c0 1.036.84 1.875 1.875 1.875S3.75 16.786 3.75 15.75v-.75Z" />
-    </svg>
-  )
-}
-
-function NotesIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-      <path fillRule="evenodd" d="M7.5 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 6ZM7.5 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 12Zm.75 5.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z" clipRule="evenodd" />
-      <path fillRule="evenodd" d="M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25ZM5.25 4.5A.75.75 0 0 0 4.5 5.25v13.5c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75V5.25a.75.75 0 0 0-.75-.75H5.25Z" clipRule="evenodd" />
-    </svg>
-  )
-}
-
 export default function App() {
-  const [path, setPath] = useState(window.location.pathname)
-  const [activeTab, setActiveTab] = useState<Tab>('home')
+  const [activePage, setActivePage] = useState<Page>('beranda')
   const [notes, setNotes] = useState<{ name: string; price: string; priceNum: number }[]>([])
   const [total, setTotal] = useState(0)
   const [clickCounts, setClickCounts] = useState<Record<number, number>>({})
@@ -122,10 +95,15 @@ export default function App() {
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const handlePop = () => setPath(window.location.pathname)
-    window.addEventListener('popstate', handlePop)
-    return () => window.removeEventListener('popstate', handlePop)
+    if (window.location.pathname === '/dashboard') {
+      setActivePage('dashboard')
+    }
   }, [])
+
+  const handleNavigate = (page: Page) => {
+    setActivePage(page)
+    window.history.pushState(null, '', page === 'dashboard' ? '/dashboard' : '/')
+  }
 
   const handleClick = useCallback((item: MenuItem) => {
     if (orderHistory.length === 0) {
@@ -225,58 +203,20 @@ export default function App() {
     }
   }
 
-  if (path === '/dashboard') {
-    return <Dashboard />
-  }
-
   return (
-    <div className="h-dvh flex flex-col bg-white">
-      <header className="flex-none px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <img src="/asset/logokebabgatsu.png" alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" />
-          <h1 className="text-base sm:text-xl font-bold text-gray-800">
-            Kebab Gatsu
-          </h1>
-        </div>
-        <nav className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-              activeTab === 'home' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <HomeIcon />
-            <span>Home</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('stok')}
-            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-              activeTab === 'stok' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <StockIcon />
-            <span>Stok</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('catatan')}
-            className={`flex flex-col items-center gap-0 px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-              activeTab === 'catatan' ? 'text-orange-500 bg-orange-50' : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <NotesIcon />
-            <span>Catatan</span>
-          </button>
-        </nav>
-      </header>
+    <Layout activePage={activePage} onNavigate={handleNavigate}>
+      {activePage === 'dashboard' ? (
+        <Dashboard />
+      ) : (
+        <div className="flex flex-col h-full bg-white">
+          {stockAlert && (
+            <div className="flex-none mx-3 sm:mx-6 mt-3 px-4 py-2 bg-red-100 border border-red-300 text-red-700 text-sm rounded-lg text-center animate-pulse">
+              {stockAlert}
+            </div>
+          )}
 
-      {stockAlert && (
-        <div className="flex-none mx-6 mt-3 px-4 py-2 bg-red-100 border border-red-300 text-red-700 text-sm rounded-lg text-center animate-pulse">
-          {stockAlert}
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
-        {activeTab === 'home' ? (
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+            {activePage === 'beranda' ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6 justify-center">
               {menu.map((item) => (
@@ -346,7 +286,7 @@ export default function App() {
               </div>
             </div>
           </>
-        ) : activeTab === 'stok' ? (
+        ) : activePage === 'stok' ? (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Stok Bahan</h2>
@@ -546,6 +486,8 @@ export default function App() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    )}
+    </Layout>
   )
 }

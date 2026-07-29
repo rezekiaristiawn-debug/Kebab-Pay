@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from './lib/supabase'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface ClosingReport {
   id: number
@@ -106,7 +107,7 @@ export default function Dashboard() {
 
   if (printReport) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4">
+      <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
         <div className="no-print mb-3">
           <button
             onClick={() => setPrintReport(null)}
@@ -120,28 +121,96 @@ export default function Dashboard() {
     )
   }
 
-  const totalOmset = reports.reduce((s, r) => s + r.omset_bersih, 0)
+  const chartData = reports.map((r) => ({
+    date: new Date(r.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+    omsetKotor: r.omset_kotor,
+    omsetBersih: r.omset_bersih,
+    itemTerjual: r.item_terjual,
+  }))
+
+  const totalOmsetKotor = reports.reduce((s, r) => s + r.omset_kotor, 0)
+  const totalOmsetBersih = reports.reduce((s, r) => s + r.omset_bersih, 0)
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-4">
-          <h1 className="text-lg font-bold text-gray-900">Dashboard Closing</h1>
-          <p className="text-sm text-gray-500">{reports.length} laporan · Total Omset Bersih Rp {totalOmset.toLocaleString('id-ID')}</p>
-        </div>
+        <h1 className="text-lg font-bold text-gray-900 mb-4">Dashboard</h1>
 
         {loading ? (
           <p className="text-gray-500">Loading...</p>
         ) : reports.length === 0 ? (
           <p className="text-gray-500">Belum ada data closing.</p>
         ) : (
-          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-            {reports.map((r) => (
-              <div key={r.id} className="flex-none">
-                <Receipt report={r} onPrint={() => setPrintReport(r)} />
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Total Laporan</p>
+                <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
               </div>
-            ))}
-          </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Omset Kotor</p>
+                <p className="text-2xl font-bold text-orange-600">Rp {totalOmsetKotor.toLocaleString('id-ID')}</p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Omset Bersih</p>
+                <p className="text-2xl font-bold text-green-600">Rp {totalOmsetBersih.toLocaleString('id-ID')}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih</h2>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="omsetBersih" stroke="#16a34a" strokeWidth={2} name="Omset Bersih" dot={{ fill: '#16a34a' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih</h2>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="omsetKotor" fill="#f97316" name="Omset Kotor" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="omsetBersih" fill="#16a34a" name="Omset Bersih" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual</h2>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" fontSize={12} tick={{ fill: '#6b7280' }} />
+                  <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="itemTerjual" stroke="#3b82f6" strokeWidth={2} name="Item Terjual" dot={{ fill: '#3b82f6' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-700">Riwayat Laporan</h2>
+              <p className="text-xs text-gray-400">{reports.length} laporan</p>
+            </div>
+            <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+              {reports.map((r) => (
+                <div key={r.id} className="flex-none">
+                  <Receipt report={r} onPrint={() => setPrintReport(r)} />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
