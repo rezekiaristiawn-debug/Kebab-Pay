@@ -135,45 +135,10 @@ export default function Dashboard({ onBack }: { onBack: () => void }) {
         ) : reports.length === 0 ? (
           <p className="text-gray-500">Belum ada data closing.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {reports.map((r) => (
-              <div key={r.id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-gray-800">{r.nama_lapak}</span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(r.tanggal).toLocaleDateString('id-ID', {
-                      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mb-3">
-                  <div>
-                    <span className="text-gray-500">Omset Kotor</span>
-                    <p className="font-semibold">Rp {r.omset_kotor.toLocaleString('id-ID')}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Gaji Kru</span>
-                    <p className="font-semibold">Rp {r.gaji_kru.toLocaleString('id-ID')}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Pengeluaran</span>
-                    <p className="font-semibold">Rp {r.total_pengeluaran.toLocaleString('id-ID')}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Omset Bersih</span>
-                    <p className="font-bold text-green-700">Rp {r.omset_bersih.toLocaleString('id-ID')}</p>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Item terjual: {r.item_terjual}</span>
-                  <button
-                    onClick={() => setPrintReport(r)}
-                    className="text-xs px-2 py-1 bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer"
-                  >
-                    Print
-                  </button>
-                </div>
+              <div key={r.id}>
+                <Receipt report={r} onPrint={() => setPrintReport(r)} />
               </div>
             ))}
           </div>
