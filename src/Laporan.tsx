@@ -79,30 +79,20 @@ export default function Laporan() {
     supabase
       .from('closing_reports')
       .select('*')
-      .eq('archived', false)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error) {
-          supabase.from('closing_reports').select('*').order('created_at', { ascending: false }).then(({ data: d2 }) => {
-            if (d2) { setReports(d2 as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(d2)) }
-            setLoading(false)
-          })
-          return
+        if (!error && data) {
+          setReports(data as ClosingReport[])
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data))
         }
-        if (data) { setReports(data as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(data)) }
         setLoading(false)
       })
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  function saveCache(data: ClosingReport[]) {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data))
-  }
-
   const handlePrintOne = async (report: ClosingReport) => {
     await supabase.from('closing_reports').update({ archived: true }).eq('id', report.id)
-    setReports((prev) => { const next = prev.filter((r) => r.id !== report.id); saveCache(next); return next })
     const w = window.open('', '_blank')
     if (!w) return
     w.document.write(printHtml([report]))
@@ -122,9 +112,7 @@ export default function Laporan() {
 
   const handlePrintAll = async () => {
     const ids = reports.map((r) => r.id)
-    const { error } = await supabase.from('closing_reports').update({ archived: true }).in('id', ids)
-    if (!error) { setReports([]); localStorage.removeItem(CACHE_KEY) }
-    else alert('Gagal mengarsip: ' + error.message)
+    await supabase.from('closing_reports').update({ archived: true }).in('id', ids)
     const w = window.open('', '_blank')
     if (!w) return
     w.document.write(printHtml(reports))
