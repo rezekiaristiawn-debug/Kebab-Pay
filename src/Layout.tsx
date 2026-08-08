@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 
-export type Page = 'beranda' | 'riwayat'
+export type Page = 'beranda' | 'dashboard' | 'grafik' | 'riwayat'
 
 interface LayoutProps {
   children: ReactNode
@@ -16,17 +16,35 @@ function HomeIcon() {
   )
 }
 
-function ClockIcon() {
+function ChartIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
+    </svg>
+  )
+}
+
+function ReportIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path d="M5.625 3.75a2.625 2.625 0 1 0 0 5.25 2.625 2.625 0 0 0 0-5.25ZM12.75 3.75a2.625 2.625 0 1 0 0 5.25 2.625 2.625 0 0 0 0-5.25ZM5.625 9.75a2.625 2.625 0 1 0 0 5.25 2.625 2.625 0 0 0 0-5.25ZM12.75 9.75a2.625 2.625 0 1 0 0 5.25 2.625 2.625 0 0 0 0-5.25ZM5.625 15.75a2.625 2.625 0 1 0 0 5.25 2.625 2.625 0 0 0 0-5.25ZM19.5 5.625a2.625 2.625 0 1 0-5.25 0 2.625 2.625 0 0 0 5.25 0ZM19.5 11.25a2.625 2.625 0 1 0-5.25 0 2.625 2.625 0 0 0 5.25 0Z" />
+    </svg>
+  )
+}
+
+function HistoryIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
     </svg>
   )
 }
 
 const navItems: { id: Page; label: string; icon: () => ReactNode }[] = [
   { id: 'beranda', label: 'Beranda', icon: HomeIcon },
-  { id: 'riwayat', label: 'Riwayat', icon: ClockIcon },
+  { id: 'dashboard', label: 'Dashboard', icon: ReportIcon },
+  { id: 'grafik', label: 'Grafik', icon: ChartIcon },
+  { id: 'riwayat', label: 'Riwayat', icon: HistoryIcon },
 ]
 
 export default function Layout({ children, activePage, onNavigate }: LayoutProps) {
