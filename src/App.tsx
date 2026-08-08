@@ -116,7 +116,6 @@ export default function App() {
   const [jamKerja, setJamKerja] = useState(draft?.jamKerja ?? 0)
   const [jamInput, setJamInput] = useState<string | null>(null)
   const [tarifJam, setTarifJam] = useState(draft?.tarifJam ?? 10000)
-  const [tarifInput, setTarifInput] = useState<string | null>(null)
 
   useEffect(() => {
     const data: DraftState = { total, stock, stockAwal, jumlahKru, gajiMode, jamKerja, tarifJam, expenses, lapakName }
@@ -319,21 +318,8 @@ export default function App() {
                       </div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm text-gray-600">Tarif/jam</span>
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-600 mr-1">Rp</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={tarifInput !== null ? tarifInput : tarifJam > 0 ? String(Math.round(tarifJam / 1000)) : ''}
-                            onFocus={(e) => { if (tarifJam > 0) setTarifInput(String(Math.round(tarifJam / 1000))); e.target.select() }}
-                            onChange={(e) => setTarifInput(e.target.value.replace(/[^\d]/g, ''))}
-                            onBlur={() => { if (tarifInput !== null) setTarifJam((parseInt(tarifInput) || 0) * 1000); setTarifInput(null) }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                            placeholder="10"
-                            className="w-16 text-center text-sm bg-white border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-gray-400"
-                          />
-                          <span className="text-xs text-gray-400 ml-1">rb</span>
-                        </div>
+                        <span className="text-sm font-medium text-gray-900">Rp {(tarifJam / 1000).toLocaleString('id-ID')}.000</span>
+                        <span className="text-xs text-gray-400">(tetap)</span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm text-gray-500">Gaji Kru (Per Jam)</span>
