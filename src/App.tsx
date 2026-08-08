@@ -369,17 +369,20 @@ export default function App() {
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Stok Bahan</h3>
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center text-xs text-gray-400 mb-1">
+                  <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center text-xs text-gray-400 mb-1">
                     <span>Bahan</span>
-                    <span className="w-16 text-center">Awal</span>
-                    <span className="w-16 text-center">Sisa</span>
+                    <span className="w-14 text-center">Awal</span>
+                    <span className="w-14 text-center">Sisa</span>
                     <span className="w-14 text-center">Terjual</span>
+                    <span className="w-20 text-right">Nilai</span>
                   </div>
                   {stockAwal.map((item, i) => {
                     const sisa = stock[i]?.quantity ?? 0
                     const terjual = Math.max(0, item.quantity - sisa)
+                    const harga = itemPrices[item.code] ?? 0
+                    const nilai = terjual * harga
                     return (
-                      <div key={item.code} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-1.5 border-b border-gray-100 last:border-0">
+                      <div key={item.code} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center py-1.5 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-700 truncate">{item.name}</span>
                         <input
                           type="text"
@@ -394,7 +397,7 @@ export default function App() {
                             setStockAwalInput((prev) => { const next = { ...prev }; delete next[item.code]; return next })
                           }}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                          className="w-16 text-center text-sm bg-white border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:border-gray-400"
+                          className="w-14 text-center text-sm bg-white border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:border-gray-400"
                         />
                         <input
                           type="text"
@@ -409,17 +412,19 @@ export default function App() {
                             setStockSisaInput((prev) => { const next = { ...prev }; delete next[item.code]; return next })
                           }}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                          className="w-16 text-center text-sm bg-white border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:border-gray-400"
+                          className="w-14 text-center text-sm bg-white border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:border-gray-400"
                         />
                         <span className="w-14 text-center text-sm font-bold text-gray-800">{terjual}</span>
+                        <span className="w-20 text-right text-sm font-semibold text-gray-700">Rp {nilai.toLocaleString('id-ID')}</span>
                       </div>
                     )
                   })}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-2 mt-1 border-t-2 border-gray-200">
+                  <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center py-2 mt-1 border-t-2 border-gray-200">
                     <span className="text-sm font-bold text-gray-800">Total</span>
-                    <span className="w-16" />
-                    <span className="w-16" />
+                    <span className="w-14" />
+                    <span className="w-14" />
                     <span className="w-14 text-center text-sm font-bold text-gray-900">{itemTerjual}</span>
+                    <span className="w-20 text-right text-sm font-bold text-gray-900">Rp {totalNilaiStok.toLocaleString('id-ID')}</span>
                   </div>
                 </div>
 
