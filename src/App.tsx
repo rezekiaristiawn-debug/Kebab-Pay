@@ -415,6 +415,12 @@ export default function App() {
                       </div>
                     )
                   })}
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-2 mt-1 border-t-2 border-gray-200">
+                    <span className="text-sm font-bold text-gray-800">Total</span>
+                    <span className="w-16" />
+                    <span className="w-16" />
+                    <span className="w-14 text-center text-sm font-bold text-gray-900">{itemTerjual}</span>
+                  </div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
