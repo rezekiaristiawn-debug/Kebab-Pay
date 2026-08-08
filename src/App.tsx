@@ -415,17 +415,10 @@ export default function App() {
                           className="w-14 text-center text-sm bg-white border border-gray-300 rounded-md px-1 py-1 focus:outline-none focus:border-gray-400"
                         />
                         <span className="w-14 text-center text-sm font-bold text-gray-800">{terjual}</span>
-                        <span className="w-20 text-right text-sm font-semibold text-gray-700">Rp {nilai.toLocaleString('id-ID')}</span>
+                        <span className="w-20 text-right text-sm font-semibold text-green-600">Rp {nilai.toLocaleString('id-ID')}</span>
                       </div>
                     )
                   })}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center py-2 mt-1 border-t-2 border-gray-200">
-                    <span className="text-sm font-bold text-gray-800">Total</span>
-                    <span className="w-14" />
-                    <span className="w-14" />
-                    <span className="w-14 text-center text-sm font-bold text-gray-900">{itemTerjual}</span>
-                    <span className="w-20 text-right text-sm font-bold text-gray-900">Rp {totalNilaiStok.toLocaleString('id-ID')}</span>
-                  </div>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
