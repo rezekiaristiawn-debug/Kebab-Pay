@@ -30,7 +30,8 @@ function NotesIcon() {
 function ChartIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-      <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
+      <path fillRule="evenodd" d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z" clipRule="evenodd" />
+      <path fillRule="evenodd" d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z" clipRule="evenodd" />
     </svg>
   )
 }
@@ -38,7 +39,7 @@ function ChartIcon() {
 function BoardIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-      <path d="M4.5 3.75a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V6.75a3 3 0 0 0-3-3h-15ZM12 8.25a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm4.5 2.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V11.25a.75.75 0 0 1 .75-.75ZM7.5 9.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V10.5a.75.75 0 0 1 .75-.75Z" />
+      <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25A3 3 0 0 1 8.25 11.25H6a3 3 0 0 1-3-3V6Zm2.25 0a.75.75 0 0 0 .75.75h2.25a.75.75 0 0 0 .75-.75V6a.75.75 0 0 0-.75-.75H6a.75.75 0 0 0-.75.75ZM13.5 6a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25A3 3 0 0 1 18 11.25h-1.5a3 3 0 0 1-3-3V6Zm3 0a.75.75 0 0 0-.75.75V8.25c0 .414.336.75.75.75H18a.75.75 0 0 0 .75-.75V6a.75.75 0 0 0-.75-.75h-1.5ZM3 15.75A3 3 0 0 1 6 12.75h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm2.25 0a.75.75 0 0 0 .75.75h2.25a.75.75 0 0 0 .75-.75V18a.75.75 0 0 0-.75-.75H6a.75.75 0 0 0-.75.75v-.75ZM13.5 15.75a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-1.5a3 3 0 0 1-3-3v-2.25Zm3 0a.75.75 0 0 0-.75.75V18c0 .414.336.75.75.75H18a.75.75 0 0 0 .75-.75v-1.5a.75.75 0 0 0-.75-.75h-1.5Z" clipRule="evenodd" />
     </svg>
   )
 }
@@ -94,7 +95,7 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
                   aria-label={item.label}
                   title={item.label}
                   className={`flex items-center justify-center px-3 py-2 transition-colors cursor-pointer ${
-                    isActive ? 'text-[#F84616]' : 'text-gray-500 hover:text-[#F84616]'
+                    isActive ? 'text-[#F84616]' : 'text-gray-500'
                   }`}
                 >
                   <Icon />
