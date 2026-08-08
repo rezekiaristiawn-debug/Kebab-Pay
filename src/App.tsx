@@ -38,7 +38,9 @@ interface DraftState {
   stock: StockItem[]
   stockAwal: StockItem[]
   jumlahKru: number
-  gajiEnabled: boolean
+  gajiMode: 'auto' | 'jam'
+  jamKerja: number
+  tarifJam: number
   expenses: { name: string; amount: number }[]
   lapakName: string
 }
@@ -63,7 +65,9 @@ function loadDraft(): DraftState | null {
       stock: sanitizeStock(parsed.stock, defaultStock),
       stockAwal: sanitizeStock(parsed.stockAwal, defaultStock),
       jumlahKru: typeof parsed.jumlahKru === 'number' && parsed.jumlahKru > 0 ? parsed.jumlahKru : 1,
-      gajiEnabled: typeof parsed.gajiEnabled === 'boolean' ? parsed.gajiEnabled : true,
+      gajiMode: parsed.gajiMode === 'jam' ? 'jam' : 'auto',
+      jamKerja: typeof parsed.jamKerja === 'number' && Number.isFinite(parsed.jamKerja) ? parsed.jamKerja : 0,
+      tarifJam: typeof parsed.tarifJam === 'number' && Number.isFinite(parsed.tarifJam) ? parsed.tarifJam : 10000,
       expenses: Array.isArray(parsed.expenses)
         ? parsed.expenses.filter(
             (e) => e && typeof e.name === 'string' && typeof e.amount === 'number' && Number.isFinite(e.amount),
@@ -108,12 +112,16 @@ export default function App() {
   const [expenseFocus, setExpenseFocus] = useState(false)
   const [jumlahKru, setJumlahKru] = useState(draft?.jumlahKru ?? 1)
   const [kruInput, setKruInput] = useState<string | null>(null)
-  const [gajiEnabled, setGajiEnabled] = useState(draft?.gajiEnabled ?? true)
+  const [gajiMode, setGajiMode] = useState<'auto' | 'jam'>(draft?.gajiMode ?? 'auto')
+  const [jamKerja, setJamKerja] = useState(draft?.jamKerja ?? 0)
+  const [jamInput, setJamInput] = useState<string | null>(null)
+  const [tarifJam, setTarifJam] = useState(draft?.tarifJam ?? 10000)
+  const [tarifInput, setTarifInput] = useState<string | null>(null)
 
   useEffect(() => {
-    const data: DraftState = { total, stock, stockAwal, jumlahKru, gajiEnabled, expenses, lapakName }
+    const data: DraftState = { total, stock, stockAwal, jumlahKru, gajiMode, jamKerja, tarifJam, expenses, lapakName }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(data))
-  }, [total, stock, stockAwal, jumlahKru, gajiEnabled, expenses, lapakName])
+  }, [total, stock, stockAwal, jumlahKru, gajiMode, jamKerja, tarifJam, expenses, lapakName])
 
   useEffect(() => {
     listLapak().then((list) => {
@@ -135,12 +143,12 @@ export default function App() {
     window.history.pushState(null, '', map[page])
   }
 
-  const gajiMode: 'flat' | 'persen' = total <= OMSET_FLAT_THRESHOLD ? 'flat' : 'persen'
-  const gaji = gajiEnabled
-    ? gajiMode === 'flat'
+  const autoGajiMode: 'flat' | 'persen' = total <= OMSET_FLAT_THRESHOLD ? 'flat' : 'persen'
+  const gaji = gajiMode === 'jam'
+    ? Math.round((jamKerja * tarifJam) / 1000) * 1000
+    : autoGajiMode === 'flat'
       ? FLAT_GAJI_PER_ORANG * jumlahKru
       : Math.round((total * (PERSEN_GAJI / 100)) / 1000) * 1000
-    : 0
   const totalPengeluaran = expenses.reduce((sum, e) => sum + e.amount, 0)
   const omsetBersih = total - gaji - totalPengeluaran
 
@@ -184,7 +192,9 @@ export default function App() {
       setStock(defaultStock)
       setStockAwal(defaultStock)
       setJumlahKru(1)
-      setGajiEnabled(true)
+      setGajiMode('auto')
+      setJamKerja(0)
+      setTarifJam(10000)
       setExpenses([])
       setLapakName('')
     } catch (err) {
@@ -269,6 +279,95 @@ export default function App() {
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-700">Gaji Kru</h3>
+                    <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                      <button
+                        onClick={() => setGajiMode('auto')}
+                        className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+                          gajiMode === 'auto' ? 'bg-black text-white' : 'bg-white text-gray-600'
+                        }`}
+                      >
+                        Otomatis
+                      </button>
+                      <button
+                        onClick={() => setGajiMode('jam')}
+                        className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+                          gajiMode === 'jam' ? 'bg-black text-white' : 'bg-white text-gray-600'
+                        }`}
+                      >
+                        Per Jam
+                      </button>
+                    </div>
+                  </div>
+                  {gajiMode === 'jam' ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm text-gray-600">Jam kerja</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={jamInput !== null ? jamInput : jamKerja > 0 ? String(jamKerja) : ''}
+                          onFocus={(e) => { if (jamKerja > 0) setJamInput(String(jamKerja)); e.target.select() }}
+                          onChange={(e) => setJamInput(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.'))}
+                          onBlur={() => { if (jamInput !== null) setJamKerja(parseFloat(jamInput) || 0); setJamInput(null) }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                          placeholder="0"
+                          className="w-20 text-center text-sm bg-white border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-gray-400"
+                        />
+                        <span className="text-xs text-gray-400">jam</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm text-gray-600">Tarif/jam</span>
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-600 mr-1">Rp</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={tarifInput !== null ? tarifInput : tarifJam > 0 ? String(Math.round(tarifJam / 1000)) : ''}
+                            onFocus={(e) => { if (tarifJam > 0) setTarifInput(String(Math.round(tarifJam / 1000))); e.target.select() }}
+                            onChange={(e) => setTarifInput(e.target.value.replace(/[^\d]/g, ''))}
+                            onBlur={() => { if (tarifInput !== null) setTarifJam((parseInt(tarifInput) || 0) * 1000); setTarifInput(null) }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                            placeholder="10"
+                            className="w-16 text-center text-sm bg-white border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-gray-400"
+                          />
+                          <span className="text-xs text-gray-400 ml-1">rb</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-gray-500">Gaji Kru (Per Jam)</span>
+                        <span className="text-sm font-bold text-green-600">Rp {gaji.toLocaleString('id-ID')}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {autoGajiMode === 'flat' && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm text-gray-600">Jumlah kru</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={kruInput !== null ? kruInput : jumlahKru > 0 ? String(jumlahKru) : ''}
+                            onFocus={(e) => { if (jumlahKru > 0) setKruInput(String(jumlahKru)); e.target.select() }}
+                            onChange={(e) => setKruInput(e.target.value.replace(/[^\d]/g, ''))}
+                            onBlur={() => { if (kruInput !== null) setJumlahKru(parseInt(kruInput) || 1); setKruInput(null) }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                            placeholder="1"
+                            className="w-14 text-center text-sm bg-white border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-gray-400"
+                          />
+                          <span className="text-xs text-gray-400">orang</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm text-gray-500">{autoGajiMode === 'flat' ? 'Gaji Kru (Flat Rp 50.000/orang)' : `Gaji Kru (${PERSEN_GAJI}% omset)`}</span>
+                        <span className="text-sm font-bold text-green-600">Rp {gaji.toLocaleString('id-ID')}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Stok Bahan</h3>
                   <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center text-xs text-gray-400 mb-1">
                     <span>Bahan</span>
@@ -316,56 +415,6 @@ export default function App() {
                       </div>
                     )
                   })}
-                </div>
-
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-700">Gaji Kru</h3>
-                      <p className="text-xs text-gray-400">Matikan kalau gaji per jam — catat di pengeluaran</p>
-                    </div>
-                    <button
-                      onClick={() => setGajiEnabled((v) => !v)}
-                      aria-label="Toggle gaji kru"
-                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer ${
-                        gajiEnabled ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                          gajiEnabled ? 'translate-x-5' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  {gajiEnabled && (
-                    <>
-                      {gajiMode === 'flat' && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm text-gray-600">Jumlah kru</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={kruInput !== null ? kruInput : jumlahKru > 0 ? String(jumlahKru) : ''}
-                            onFocus={(e) => { if (jumlahKru > 0) setKruInput(String(jumlahKru)); e.target.select() }}
-                            onChange={(e) => setKruInput(e.target.value.replace(/[^\d]/g, ''))}
-                            onBlur={() => { if (kruInput !== null) setJumlahKru(parseInt(kruInput) || 1); setKruInput(null) }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                            placeholder="1"
-                            className="w-14 text-center text-sm bg-white border border-gray-300 px-2 py-1.5 focus:outline-none focus:border-gray-400"
-                          />
-                          <span className="text-xs text-gray-400">orang</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-gray-500">{gajiMode === 'flat' ? 'Gaji Kru (Flat Rp 50.000/orang)' : `Gaji Kru (${PERSEN_GAJI}% omset)`}</span>
-                        <span className="text-sm font-bold text-green-600">Rp {gaji.toLocaleString('id-ID')}</span>
-                      </div>
-                    </>
-                  )}
-                  {!gajiEnabled && (
-                    <p className="text-sm text-gray-400">Gaji kru dimatikan — upah per jam diisi di pengeluaran.</p>
-                  )}
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -526,11 +575,11 @@ export default function App() {
                     </div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-black">
-                        {gajiEnabled
-                          ? gajiMode === 'flat'
+                        {gajiMode === 'jam'
+                          ? `Gaji Kru (${jamKerja} jam × Rp ${(tarifJam / 1000).toLocaleString('id-ID')}.000)`
+                          : autoGajiMode === 'flat'
                             ? `Gaji Kru (Flat Rp 50.000 × ${jumlahKru})`
-                            : `Gaji Kru (${PERSEN_GAJI}% omset)`
-                          : 'Gaji Kru (nonaktif)'}
+                            : `Gaji Kru (${PERSEN_GAJI}% omset)`}
                       </span>
                       <span className="font-bold text-black">Rp {gaji.toLocaleString('id-ID')}</span>
                     </div>
