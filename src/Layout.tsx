@@ -94,7 +94,7 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
                   aria-label={item.label}
                   title={item.label}
                   className={`flex items-center justify-center px-3 py-2 transition-colors cursor-pointer ${
-                    isActive ? 'text-[#F84616]' : 'text-gray-500'
+                    isActive ? 'text-gray-900' : 'text-gray-500'
                   }`}
                 >
                   <Icon />
