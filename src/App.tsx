@@ -1,40 +1,28 @@
 import { useState, useEffect } from 'react'
-import Dashboard from './Dashboard'
-import Laporan from './Laporan'
-import History from './History'
+import Beranda from './Beranda'
+import Admin from './Admin'
 import Layout, { type Page } from './Layout'
 
 export default function App() {
   const [activePage, setActivePage] = useState<Page>(() => {
     const path = window.location.pathname
-    if (path === '/grafik') return 'grafik'
     if (path === '/riwayat') return 'riwayat'
-    return 'dashboard'
+    return 'beranda'
   })
 
   useEffect(() => {
-    const path = window.location.pathname
-    if (path === '/grafik') setActivePage('grafik')
-    else if (path === '/riwayat') setActivePage('riwayat')
+    if (window.location.pathname === '/riwayat') setActivePage('riwayat')
   }, [])
 
   const handleNavigate = (page: Page) => {
     setActivePage(page)
-    const map: Record<Page, string> = { dashboard: '/', grafik: '/grafik', riwayat: '/riwayat' }
+    const map: Record<Page, string> = { beranda: '/', riwayat: '/riwayat' }
     window.history.pushState(null, '', map[page])
-  }
-
-  const page = () => {
-    switch (activePage) {
-      case 'dashboard': return <Laporan />
-      case 'grafik': return <Dashboard />
-      case 'riwayat': return <History />
-    }
   }
 
   return (
     <Layout activePage={activePage} onNavigate={handleNavigate}>
-      {page()}
+      {activePage === 'riwayat' ? <Admin /> : <Beranda />}
     </Layout>
   )
 }

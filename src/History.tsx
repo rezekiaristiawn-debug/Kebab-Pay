@@ -28,17 +28,12 @@ export default function History() {
     supabase
       .from('closing_reports')
       .select('*')
-      .eq('archived', true)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error) {
-          supabase.from('closing_reports').select('*').order('created_at', { ascending: false }).then(({ data: d2 }) => {
-            if (d2) { setReports(d2 as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(d2)) }
-            setLoading(false)
-          })
-          return
+        if (!error && data) {
+          setReports(data as ClosingReport[])
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data))
         }
-        if (data) { setReports(data as ClosingReport[]); localStorage.setItem(CACHE_KEY, JSON.stringify(data)) }
         setLoading(false)
       })
   }, [])
