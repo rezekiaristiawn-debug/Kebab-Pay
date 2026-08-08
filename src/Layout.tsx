@@ -27,12 +27,42 @@ function NotesIcon() {
   )
 }
 
+function ChartIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+      <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75ZM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 0 1-1.875-1.875V8.625ZM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 0 1 3 19.875v-6.75Z" />
+    </svg>
+  )
+}
+
+function BoardIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+      <path d="M4.5 3.75a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V6.75a3 3 0 0 0-3-3h-15ZM12 8.25a.75.75 0 0 1 .75.75v6a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm4.5 2.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V11.25a.75.75 0 0 1 .75-.75ZM7.5 9.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V10.5a.75.75 0 0 1 .75-.75Z" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+      <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
+    </svg>
+  )
+}
+
 type NavItem = { id: Page; label: string; icon: () => ReactNode; accent?: boolean }
 
 const posNavItems: NavItem[] = [
   { id: 'beranda', label: 'Home', icon: HomeIcon, accent: true },
   { id: 'stok', label: 'Stok', icon: StockIcon, accent: true },
   { id: 'catatan', label: 'Pengeluaran', icon: NotesIcon, accent: true },
+]
+
+const adminNavItems: NavItem[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: BoardIcon, accent: true },
+  { id: 'grafik', label: 'Grafik', icon: ChartIcon, accent: true },
+  { id: 'riwayat', label: 'Riwayat', icon: ClockIcon, accent: true },
 ]
 
 interface LayoutProps {
@@ -42,7 +72,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, activePage, onNavigate }: LayoutProps) {
-  const navItems = posNavItems
+  const isAdmin = activePage === 'dashboard' || activePage === 'grafik' || activePage === 'riwayat'
+  const navItems = isAdmin ? adminNavItems : posNavItems
 
   return (
     <div className="h-dvh flex flex-col bg-gray-50 overflow-hidden">
