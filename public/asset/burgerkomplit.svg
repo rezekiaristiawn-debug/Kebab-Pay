@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#FFF8E1"/>
+  <text x="200" y="55" font-family="Arial, sans-serif" font-size="34" font-weight="bold" text-anchor="middle" fill="#5D4037">BURGER KOMPLIT</text>
+  <path d="M55 180 Q55 60 200 60 Q345 60 345 180 Z" fill="#F2B441"/>
+  <ellipse cx="160" cy="105" rx="14" ry="7" fill="#D89A2B" transform="rotate(-15 160 105)"/>
+  <ellipse cx="250" cy="95" rx="14" ry="7" fill="#D89A2B" transform="rotate(12 250 95)"/>
+  <rect x="65" y="185" width="270" height="30" rx="10" fill="#7CB342"/>
+  <rect x="65" y="220" width="270" height="30" rx="10" fill="#7A4A21"/>
+  <rect x="65" y="252" width="270" height="18" rx="5" fill="#FFD54F"/>
+  <ellipse cx="200" cy="280" rx="100" ry="26" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+  <circle cx="200" cy="280" r="16" fill="#FFC107"/>
+  <rect x="60" y="310" width="280" height="40" rx="20" fill="#F2B441"/>
+  <rect x="60" y="310" width="280" height="18" rx="9" fill="#E8A02A"/>
+</svg>

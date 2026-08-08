@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#FFF3E0"/>
+  <text x="200" y="55" font-family="Arial, sans-serif" font-size="34" font-weight="bold" text-anchor="middle" fill="#5D4037">BURGER BEEF</text>
+  <path d="M55 215 Q55 95 200 95 Q345 95 345 215 Z" fill="#F2B441"/>
+  <ellipse cx="160" cy="140" rx="14" ry="7" fill="#D89A2B" transform="rotate(-15 160 140)"/>
+  <ellipse cx="250" cy="130" rx="14" ry="7" fill="#D89A2B" transform="rotate(12 250 130)"/>
+  <rect x="65" y="225" width="270" height="50" rx="12" fill="#7A4A21"/>
+  <rect x="85" y="240" width="50" height="4" rx="2" fill="#5B3517"/>
+  <rect x="160" y="240" width="50" height="4" rx="2" fill="#5B3517"/>
+  <rect x="235" y="240" width="50" height="4" rx="2" fill="#5B3517"/>
+  <rect x="60" y="292" width="280" height="44" rx="22" fill="#F2B441"/>
+  <rect x="60" y="292" width="280" height="20" rx="10" fill="#E8A02A"/>
+</svg>

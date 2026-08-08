@@ -1,0 +1,19 @@
+{
+  "name": "Kebab Gatsu",
+  "short_name": "Kebab Gatsu",
+  "description": "Aplikasi laporan dan dashboard Kebab Gatsu",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/asset/logokebabgatsu.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

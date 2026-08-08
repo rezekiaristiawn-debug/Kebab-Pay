@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './lib/supabase'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import Laporan from './Laporan'
 
 interface ClosingReport {
   id: number
@@ -15,22 +15,93 @@ interface ClosingReport {
   created_at: string
 }
 
-type ViewMode = 'bulanan' | 'tahunan'
+type ViewMode = 'harian' | 'mingguan' | 'bulanan' | 'tahunan'
 
 const CACHE_KEY = 'kebab_dashboard'
 
+const VIEWS: { id: ViewMode; label: string }[] = [
+  { id: 'harian', label: 'Harian' },
+  { id: 'mingguan', label: 'Mingguan' },
+  { id: 'bulanan', label: 'Bulanan' },
+  { id: 'tahunan', label: 'Tahunan' },
+]
+
+const DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+const startOfWeek = (d: Date) => {
+  const s = startOfDay(d)
+  s.setDate(s.getDate() - ((s.getDay() + 6) % 7))
+  return s
+}
+const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
+const startOfYear = (d: Date) => new Date(d.getFullYear(), 0, 1)
+
+const isoLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+const startOf = (view: ViewMode): (d: Date) => Date => {
+  if (view === 'harian') return startOfDay
+  if (view === 'mingguan') return startOfWeek
+  if (view === 'bulanan') return startOfMonth
+  return startOfYear
+}
+
+const bucketKey = (view: ViewMode, start: Date): string => {
+  if (view === 'harian' || view === 'mingguan') return isoLocal(start)
+  if (view === 'bulanan') return `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`
+  return String(start.getFullYear())
+}
+
+const PERIOD_CAPTION: Record<ViewMode, string> = {
+  harian: 'Hari Ini',
+  mingguan: 'Minggu Ini',
+  bulanan: 'Bulan Ini',
+  tahunan: 'Tahun Ini',
+}
+
+const periodLabel = (view: ViewMode, now: Date): string => {
+  if (view === 'harian') return `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
+  if (view === 'mingguan') {
+    const s = startOfWeek(now)
+    const e = new Date(s); e.setDate(e.getDate() + 6)
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+      return `${s.getDate()}\u2013${e.getDate()} ${MONTHS[s.getMonth()]} ${s.getFullYear()}`
+    }
+    if (s.getFullYear() === e.getFullYear()) {
+      return `${s.getDate()} ${MONTHS[s.getMonth()]} \u2013 ${e.getDate()} ${MONTHS[e.getMonth()]} ${s.getFullYear()}`
+    }
+    return `${s.getDate()} ${MONTHS[s.getMonth()]} ${s.getFullYear()}\u2013${e.getDate()} ${MONTHS[e.getMonth()]} ${e.getFullYear()}`
+  }
+  if (view === 'bulanan') return `${MONTHS[now.getMonth()]} ${now.getFullYear()}`
+  return String(now.getFullYear())
+}
+
+interface Bucket {
+  key: string
+  label: string
+  omsetKotor: number
+  omsetBersih: number
+  itemTerjual: number
+  count: number
+}
+
+const moneyFormat = (n: number) => 'Rp ' + n.toLocaleString('id-ID')
+
 export default function Dashboard() {
+
   const [reports, setReports] = useState<ClosingReport[]>(() => {
     const cached = localStorage.getItem(CACHE_KEY)
     return cached ? JSON.parse(cached) : []
   })
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<ViewMode>('bulanan')
+  const [view, setView] = useState<ViewMode>('harian')
 
-  useEffect(() => {
+  const load = useCallback(() => {
     supabase
       .from('closing_reports')
       .select('*')
+      .or('archived.is.null,archived.eq.false')
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) {
@@ -41,152 +112,87 @@ export default function Dashboard() {
       })
   }, [])
 
-  const monthlyMap: Record<string, { label: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
-  const yearlyMap: Record<string, { label: string; omsetKotor: number; omsetBersih: number; itemTerjual: number; count: number }> = {}
+  useEffect(() => {
+    load()
+    const id = setInterval(load, 10000)
+    return () => clearInterval(id)
+  }, [load])
+
+  const now = new Date()
+  const sFn = startOf(view)
+
+  const map = new Map<string, Bucket>()
   for (const r of reports) {
-    const d = new Date(r.tanggal)
-    const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const mLabel = d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short' })
-    if (!monthlyMap[mKey]) {
-      monthlyMap[mKey] = { label: mLabel, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+    const s = sFn(new Date(r.tanggal))
+    const key = bucketKey(view, s)
+    let b = map.get(key)
+    if (!b) {
+      b = { key, label: PERIOD_CAPTION[view], omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+      map.set(key, b)
     }
-    monthlyMap[mKey].omsetKotor += r.omset_kotor
-    monthlyMap[mKey].omsetBersih += r.omset_bersih
-    monthlyMap[mKey].itemTerjual += r.item_terjual
-    monthlyMap[mKey].count++
-
-    const yKey = String(d.getFullYear())
-    if (!yearlyMap[yKey]) {
-      yearlyMap[yKey] = { label: yKey, omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
-    }
-    yearlyMap[yKey].omsetKotor += r.omset_kotor
-    yearlyMap[yKey].omsetBersih += r.omset_bersih
-    yearlyMap[yKey].itemTerjual += r.item_terjual
-    yearlyMap[yKey].count++
+    b.omsetKotor += r.omset_kotor
+    b.omsetBersih += r.omset_bersih
+    b.itemTerjual += r.item_terjual
+    b.count += 1
   }
-  const chartData = view === 'bulanan' ? Object.values(monthlyMap) : Object.values(yearlyMap)
 
-  const totalOmsetKotor = reports.reduce((s, r) => s + r.omset_kotor, 0)
-  const totalOmsetBersih = reports.reduce((s, r) => s + r.omset_bersih, 0)
-  const totalItems = reports.reduce((s, r) => s + r.item_terjual, 0)
+  const curKey = bucketKey(view, sFn(now))
+  const current = map.get(curKey) ?? { key: curKey, label: PERIOD_CAPTION[view], omsetKotor: 0, omsetBersih: 0, itemTerjual: 0, count: 0 }
+
+  const cards = [
+    { label: 'Laporan', value: String(current.count), card: 'bg-white border-gray-200', badge: 'bg-gray-100 text-gray-700', valueCls: 'text-gray-900' },
+    { label: 'Omset Kotor', value: moneyFormat(current.omsetKotor), card: 'bg-white border-gray-200', badge: 'bg-gray-100 text-gray-700', valueCls: 'text-gray-900' },
+    { label: 'Omset Bersih', value: moneyFormat(current.omsetBersih), card: 'bg-white border-gray-200', badge: 'bg-gray-100 text-gray-700', valueCls: 'text-gray-900' },
+    { label: 'Item Terjual', value: String(current.itemTerjual), card: 'bg-white border-gray-200', badge: 'bg-gray-100 text-gray-700', valueCls: 'text-gray-900' },
+  ]
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-gradient-to-br from-slate-100 via-sky-50 to-emerald-50">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900">Grafik</h1>
-          <div className="flex bg-gray-100 rounded-lg p-0.5">
-            <button
-              onClick={() => setView('bulanan')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${view === 'bulanan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Bulanan
-            </button>
-            <button
-              onClick={() => setView('tahunan')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${view === 'tahunan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Tahunan
-            </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
+            <p className="text-xs text-gray-500 mt-0.5">{periodLabel(view, now)}</p>
+          </div>
+          <div className="flex bg-white border border-gray-200 p-0.5 shadow-sm">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => setView(v.id)}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                  view === v.id ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {loading ? (
-          <p className="text-gray-500">Loading...</p>
+          <div className="bg-white/80 border border-gray-200 shadow-sm p-8 text-center">
+            <p className="text-sm text-gray-400">Memuat data...</p>
+          </div>
         ) : reports.length === 0 ? (
-          <p className="text-gray-500">Belum ada data closing.</p>
+          <div className="bg-white/80 border border-gray-200 shadow-sm p-8 text-center">
+            <p className="text-sm text-gray-400">Belum ada data closing. Kirim closing dari halaman Beranda.</p>
+          </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-xs text-gray-500">Total Laporan</p>
-                <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {cards.map((c) => (
+              <div key={c.label} className={`${c.card} border shadow-sm p-4 min-w-0`}>
+                <p className={`text-xs font-semibold inline-block px-2 py-0.5 ${c.badge}`}>
+                  {c.label} · {PERIOD_CAPTION[view]}
+                </p>
+                <p className={`text-2xl font-bold mt-2 break-words ${c.valueCls}`}>{c.value}</p>
               </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-xs text-gray-500">Omset Kotor</p>
-                <p className="text-2xl font-bold text-orange-600">Rp {totalOmsetKotor.toLocaleString('id-ID')}</p>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-xs text-gray-500">Omset Bersih</p>
-                <p className="text-2xl font-bold text-green-600">Rp {totalOmsetBersih.toLocaleString('id-ID')}</p>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-xs text-gray-500">Total Item Terjual</p>
-                <p className="text-2xl font-bold text-blue-600">{totalItems}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Tren Omset Bersih</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
-                    <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="omsetBersih" stroke="#16a34a" strokeWidth={2} name="Omset Bersih" dot={{ fill: '#16a34a' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">Omset Kotor vs Bersih</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
-                    <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="omsetKotor" fill="#f97316" name="Omset Kotor" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="omsetBersih" fill="#16a34a" name="Omset Bersih" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Item Terjual</h2>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" fontSize={12} tick={{ fill: '#6b7280' }} />
-                  <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
-                  <Tooltip />
-                  <Bar dataKey="itemTerjual" fill="#3b82f6" name="Item Terjual" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Ringkasan {view === 'bulanan' ? 'Bulanan' : 'Tahunan'}</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">{view === 'bulanan' ? 'Bulan' : 'Tahun'}</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Laporan</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Kotor</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Omset Bersih</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Item Terjual</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chartData.map((d) => (
-                      <tr key={d.label} className="border-t border-gray-100">
-                        <td className="px-3 py-2 font-medium text-gray-800">{d.label}</td>
-                        <td className="px-3 py-2 text-right text-gray-600">{d.count}</td>
-                        <td className="px-3 py-2 text-right text-orange-600">Rp {d.omsetKotor.toLocaleString('id-ID')}</td>
-                        <td className="px-3 py-2 text-right text-green-600">Rp {d.omsetBersih.toLocaleString('id-ID')}</td>
-                        <td className="px-3 py-2 text-right text-blue-600">{d.itemTerjual}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
+            ))}
+          </div>
         )}
+
+        <div className="bg-white border border-gray-200 shadow-sm p-4 sm:p-6">
+          <Laporan />
+        </div>
       </div>
     </div>
   )
