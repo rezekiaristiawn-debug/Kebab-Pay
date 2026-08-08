@@ -212,7 +212,6 @@ export default function App() {
       ) : (
         <div className="flex flex-col h-full bg-gray-50">
           <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-6">
-            {activePage === 'beranda' ? (
               <div className="max-w-xl mx-auto space-y-4 pb-6">
                 <div>
                   <h2 className="text-lg font-bold text-gray-800">Input Closing</h2>
@@ -369,6 +368,71 @@ export default function App() {
                   )}
                 </div>
 
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Pengeluaran</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={expenseName}
+                      onChange={(e) => setExpenseName(e.target.value)}
+                      placeholder="Nama pengeluaran"
+                      className="w-full sm:flex-1 min-w-0 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-gray-400"
+                    />
+                    <div className="flex flex-row-reverse gap-2">
+                      <button
+                        onClick={() => {
+                          if (!expenseName.trim() || !expenseAmount.trim()) return
+                          const num = (parseInt(expenseAmount) || 0) * 1000
+                          if (num <= 0) return
+                          setExpenses((prev) => [...prev, { name: expenseName.trim(), amount: num }])
+                          setExpenseName('')
+                          setExpenseAmount('')
+                        }}
+                        className="px-4 py-1.5 bg-white border-2 border-gray-800 text-gray-800 text-sm font-medium shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        Tambah
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={expenseFocus ? expenseAmount : expenseAmount ? (parseInt(expenseAmount) * 1000).toLocaleString('id-ID') : ''}
+                        onChange={(e) => setExpenseAmount(e.target.value.replace(/[^\d]/g, ''))}
+                        onFocus={(e) => { setExpenseFocus(true); e.target.select() }}
+                        onBlur={() => setExpenseFocus(false)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                        placeholder="Harga"
+                        className="w-32 shrink-0 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-gray-400"
+                      />
+                    </div>
+                  </div>
+                  <div className="h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white">
+                    {expenses.length === 0 ? (
+                      <p className="text-sm text-gray-400">Belum ada pengeluaran...</p>
+                    ) : (
+                      expenses.map((exp, i) => (
+                        <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                          <span className="text-sm text-gray-700">{i + 1}. {exp.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-700">Rp {exp.amount.toLocaleString('id-ID')}</span>
+                            <button
+                              onClick={() => setExpenses((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {expenses.length > 0 && (
+                    <div className="text-right mt-2">
+                      <span className="text-sm text-gray-500">Total Pengeluaran: </span>
+                      <span className="text-sm font-bold text-red-600">Rp {totalPengeluaran.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+                </div>
+
                 <button
                   onClick={() => setShowClosing(true)}
                   className="w-full justify-center items-center px-4 py-3 bg-black text-white border border-black hover:bg-gray-800 active:bg-gray-900 transition-colors cursor-pointer text-sm font-semibold rounded-lg"
@@ -376,112 +440,6 @@ export default function App() {
                   Selesai Jual — Lihat Laporan
                 </button>
               </div>
-            ) : activePage === 'stok' ? (
-              <div className="max-w-xl mx-auto space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-bold text-gray-800">Stok Bahan</h2>
-                  <button
-                    onClick={() => setShowClosing(true)}
-                    className="text-sm px-3 py-1 bg-green-50 text-green-700 rounded-md border border-green-200 hover:bg-green-100 active:bg-green-200 transition-colors cursor-pointer"
-                  >
-                    Closing
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400">
-                  Atur stok awal default. Untuk tiap shift, isi Awal & Sisa di halaman Input Closing.
-                </p>
-                <div className="space-y-3">
-                  {stockAwal.map((item, index) => (
-                    <div key={item.code} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                      <div>
-                        <span className="text-sm font-semibold text-gray-700">{item.name}</span>
-                        <span className="text-xs text-gray-400 ml-2">({item.code})</span>
-                      </div>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={stockAwalInput[item.code] ?? item.quantity}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => setStockAwalInput((prev) => ({ ...prev, [item.code]: e.target.value }))}
-                        onBlur={() => {
-                          const val = stockAwalInput[item.code]
-                          const num = val !== undefined ? (parseFloat(val) || 0) : item.quantity
-                          setStockAwal((prev) => prev.map((s, i) => (i === index ? { ...s, quantity: num } : s)))
-                          setStockAwalInput((prev) => { const next = { ...prev }; delete next[item.code]; return next })
-                        }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                        className="w-20 text-center text-sm bg-white border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:border-gray-400"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="max-w-xl mx-auto space-y-4">
-                <h2 className="text-lg font-bold text-gray-800">Pengeluaran Kru</h2>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <input
-                    type="text"
-                    value={expenseName}
-                    onChange={(e) => setExpenseName(e.target.value)}
-                    placeholder="Nama pengeluaran"
-                    className="w-full sm:flex-1 min-w-0 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-gray-400"
-                  />
-                  <div className="flex flex-row-reverse gap-2">
-                    <button
-                      onClick={() => {
-                        if (!expenseName.trim() || !expenseAmount.trim()) return
-                        const num = (parseInt(expenseAmount) || 0) * 1000
-                        if (num <= 0) return
-                        setExpenses((prev) => [...prev, { name: expenseName.trim(), amount: num }])
-                        setExpenseName('')
-                        setExpenseAmount('')
-                      }}
-                      className="px-4 py-1.5 bg-white border-2 border-gray-800 text-gray-800 text-sm font-medium shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      Tambah
-                    </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={expenseFocus ? expenseAmount : expenseAmount ? (parseInt(expenseAmount) * 1000).toLocaleString('id-ID') : ''}
-                      onChange={(e) => setExpenseAmount(e.target.value.replace(/[^\d]/g, ''))}
-                      onFocus={(e) => { setExpenseFocus(true); e.target.select() }}
-                      onBlur={() => setExpenseFocus(false)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      placeholder="Harga"
-                      className="w-32 shrink-0 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-gray-400"
-                    />
-                  </div>
-                </div>
-                <div className="h-52 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white">
-                  {expenses.length === 0 ? (
-                    <p className="text-sm text-gray-400">Belum ada pengeluaran...</p>
-                  ) : (
-                    expenses.map((exp, i) => (
-                      <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-700">{i + 1}. {exp.name}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-700">Rp {exp.amount.toLocaleString('id-ID')}</span>
-                          <button
-                            onClick={() => setExpenses((prev) => prev.filter((_, idx) => idx !== i))}
-                            className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
-                          >
-                            Hapus
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {expenses.length > 0 && (
-                  <div className="text-right">
-                    <span className="text-sm text-gray-500">Total Pengeluaran: </span>
-                    <span className="text-sm font-bold text-red-600">Rp {totalPengeluaran.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {showClosing && (
