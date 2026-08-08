@@ -74,7 +74,7 @@ export default function Dashboard() {
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900">Dashboard Monitoring</h1>
+          <h1 className="text-lg font-bold text-gray-900">Grafik</h1>
           <div className="flex bg-gray-100 rounded-lg p-0.5">
             <button
               onClick={() => setView('bulanan')}

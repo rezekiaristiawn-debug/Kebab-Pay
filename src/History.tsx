@@ -64,7 +64,7 @@ export default function History() {
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900">History</h1>
+          <h1 className="text-lg font-bold text-gray-900">Riwayat</h1>
           <div className="flex items-center gap-2">
             <p className="text-sm text-gray-400">{reports.length} laporan</p>
           </div>
@@ -73,7 +73,7 @@ export default function History() {
         {loading ? (
           <p className="text-gray-500">Loading...</p>
         ) : reports.length === 0 ? (
-          <p className="text-gray-500">Belum ada history.</p>
+          <p className="text-gray-500">Belum ada riwayat.</p>
         ) : (
           <div className="space-y-6">
             {sortedDates.map((tgl) => (

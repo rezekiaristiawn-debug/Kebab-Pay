@@ -124,6 +124,10 @@ export default function Laporan() {
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6">
       <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-400">{loading ? '' : `${reports.length} laporan`}</p>
+        </div>
         {loading ? (
           <p className="text-gray-500">Loading...</p>
         ) : reports.length === 0 ? (
