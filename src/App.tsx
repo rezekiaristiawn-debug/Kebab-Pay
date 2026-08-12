@@ -39,8 +39,10 @@ interface DraftState {
   stockAwal: StockItem[]
   jumlahKru: number
   gajiMode: 'auto' | 'jam'
+  gajiAktif: boolean
   jamKerja: number
   tarifJam: number
+  omsetFromStok: boolean
   expenses: { name: string; amount: number }[]
   lapakName: string
 }
@@ -66,8 +68,10 @@ function loadDraft(): DraftState | null {
       stockAwal: sanitizeStock(parsed.stockAwal, defaultStock),
       jumlahKru: typeof parsed.jumlahKru === 'number' && parsed.jumlahKru > 0 ? parsed.jumlahKru : 1,
       gajiMode: parsed.gajiMode === 'jam' ? 'jam' : 'auto',
+      gajiAktif: parsed.gajiAktif !== false,
       jamKerja: typeof parsed.jamKerja === 'number' && Number.isFinite(parsed.jamKerja) ? parsed.jamKerja : 0,
       tarifJam: typeof parsed.tarifJam === 'number' && Number.isFinite(parsed.tarifJam) ? parsed.tarifJam : 10000,
+      omsetFromStok: parsed.omsetFromStok !== false,
       expenses: Array.isArray(parsed.expenses)
         ? parsed.expenses.filter(
             (e) => e && typeof e.name === 'string' && typeof e.amount === 'number' && Number.isFinite(e.amount),
@@ -113,14 +117,16 @@ export default function App() {
   const [jumlahKru, setJumlahKru] = useState(draft?.jumlahKru ?? 1)
   const [kruInput, setKruInput] = useState<string | null>(null)
   const [gajiMode, setGajiMode] = useState<'auto' | 'jam'>(draft?.gajiMode ?? 'auto')
+  const [gajiAktif, setGajiAktif] = useState(draft?.gajiAktif ?? true)
   const [jamKerja, setJamKerja] = useState(draft?.jamKerja ?? 0)
   const [jamInput, setJamInput] = useState<string | null>(null)
   const [tarifJam, setTarifJam] = useState(draft?.tarifJam ?? 10000)
+  const [omsetFromStok, setOmsetFromStok] = useState(draft?.omsetFromStok ?? true)
 
   useEffect(() => {
-    const data: DraftState = { total, stock, stockAwal, jumlahKru, gajiMode, jamKerja, tarifJam, expenses, lapakName }
+    const data: DraftState = { total, stock, stockAwal, jumlahKru, gajiMode, gajiAktif, jamKerja, tarifJam, omsetFromStok, expenses, lapakName }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(data))
-  }, [total, stock, stockAwal, jumlahKru, gajiMode, jamKerja, tarifJam, expenses, lapakName])
+  }, [total, stock, stockAwal, jumlahKru, gajiMode, gajiAktif, jamKerja, tarifJam, omsetFromStok, expenses, lapakName])
 
   useEffect(() => {
     listLapak().then((list) => {
@@ -143,11 +149,13 @@ export default function App() {
   }
 
   const autoGajiMode: 'flat' | 'persen' = total <= OMSET_FLAT_THRESHOLD ? 'flat' : 'persen'
-  const gaji = gajiMode === 'jam'
-    ? Math.round((jamKerja * tarifJam) / 1000) * 1000
-    : autoGajiMode === 'flat'
-      ? FLAT_GAJI_PER_ORANG * jumlahKru
-      : Math.round((total * (PERSEN_GAJI / 100)) / 1000) * 1000
+  const gaji = !gajiAktif
+    ? 0
+    : gajiMode === 'jam'
+      ? Math.round((jamKerja * tarifJam) / 1000) * 1000
+      : autoGajiMode === 'flat'
+        ? FLAT_GAJI_PER_ORANG * jumlahKru
+        : Math.round((total * (PERSEN_GAJI / 100)) / 1000) * 1000
   const totalPengeluaran = expenses.reduce((sum, e) => sum + e.amount, 0)
   const omsetBersih = total - gaji - totalPengeluaran
 
@@ -159,6 +167,10 @@ export default function App() {
   })
   const totalNilaiStok = nilaiStok.reduce((s, r) => s + r.nilai, 0)
   const itemTerjual = Math.round(nilaiStok.reduce((s, r) => s + r.terjual, 0) * 100) / 100
+
+  useEffect(() => {
+    if (omsetFromStok) setTotal(totalNilaiStok)
+  }, [omsetFromStok, totalNilaiStok])
 
   const handleKirim = async () => {
     if (!lapakName.trim()) return
@@ -176,7 +188,7 @@ export default function App() {
       pengeluaran: expenses,
       total_pengeluaran: totalPengeluaran,
       omset_bersih: omsetBersih,
-      item_terjual: itemTerjual,
+      item_terjual: Math.round(itemTerjual),
     }
     try {
       const { error } = await supabase.from('closing_reports').insert([{ ...basePayload, stok: stokPayload }])
@@ -188,6 +200,7 @@ export default function App() {
       alert(`Data "${namaLapak}" berhasil dikirim!`)
       setShowClosing(false)
       setTotal(0)
+      setOmsetFromStok(true)
       setStock(defaultStock)
       setStockAwal(defaultStock)
       setJumlahKru(1)
@@ -268,38 +281,63 @@ export default function App() {
                       inputMode="numeric"
                       value={totalInput !== null ? totalInput : total > 0 ? total.toLocaleString('id-ID') : ''}
                       onFocus={(e) => { if (total > 0) setTotalInput(String(Math.round(total / 1000))); e.target.select() }}
-                      onChange={(e) => setTotalInput(e.target.value.replace(/[^\d]/g, ''))}
+                      onChange={(e) => { setOmsetFromStok(false); setTotalInput(e.target.value.replace(/[^\d]/g, '')) }}
                       onBlur={() => { if (totalInput !== null) setTotal((parseInt(totalInput) || 0) * 1000); setTotalInput(null) }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       placeholder="0"
                       className="w-full text-3xl font-bold text-gray-900 text-center bg-transparent outline-none"
                     />
                   </div>
+                  {omsetFromStok ? (
+                    <p className="text-xs text-green-600 text-center mt-1">Otomatis diisi dari total stok terjual</p>
+                  ) : (
+                    <button
+                      onClick={() => { setOmsetFromStok(true); setTotal(totalNilaiStok) }}
+                      className="mt-1 mx-auto block text-xs font-medium text-gray-500 hover:text-gray-700 cursor-pointer"
+                    >
+                      Isi ulang dari stok
+                    </button>
+                  )}
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-700">Gaji Kru</h3>
-                    <div className="flex rounded-lg border border-gray-300 overflow-hidden">
-                      <button
-                        onClick={() => setGajiMode('auto')}
-                        className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
-                          gajiMode === 'auto' ? 'bg-black text-white' : 'bg-white text-gray-600'
-                        }`}
-                      >
-                        Otomatis
-                      </button>
-                      <button
-                        onClick={() => setGajiMode('jam')}
-                        className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
-                          gajiMode === 'jam' ? 'bg-black text-white' : 'bg-white text-gray-600'
-                        }`}
-                      >
-                        Per Jam
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setGajiAktif(!gajiAktif)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                        gajiAktif ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+                      }`}
+                    >
+                      {gajiAktif ? 'Aktif' : 'Mati'}
+                    </button>
                   </div>
-                  {gajiMode === 'jam' ? (
+                  {!gajiAktif ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
+                      <p className="text-sm font-medium text-amber-800">Gaji ditulis di pengeluaran</p>
+                      <p className="text-xs text-amber-700 mt-0.5">Tidak ada potongan gaji otomatis. Catat gaji kru sebagai pengeluaran.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex rounded-lg border border-gray-300 overflow-hidden w-fit mb-3">
+                        <button
+                          onClick={() => setGajiMode('auto')}
+                          className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+                            gajiMode === 'auto' ? 'bg-black text-white' : 'bg-white text-gray-600'
+                          }`}
+                        >
+                          Otomatis
+                        </button>
+                        <button
+                          onClick={() => setGajiMode('jam')}
+                          className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+                            gajiMode === 'jam' ? 'bg-black text-white' : 'bg-white text-gray-600'
+                          }`}
+                        >
+                          Per Jam
+                        </button>
+                      </div>
+                      {gajiMode === 'jam' ? (
                     <>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm text-gray-600">Jam kerja</span>
@@ -349,6 +387,8 @@ export default function App() {
                         <span className="text-sm text-gray-500">{autoGajiMode === 'flat' ? 'Gaji Kru (Flat Rp 50.000/orang)' : `Gaji Kru (${PERSEN_GAJI}% omset)`}</span>
                         <span className="text-sm font-bold text-green-600">Rp {gaji.toLocaleString('id-ID')}</span>
                       </div>
+                      </>
+                    )}
                     </>
                   )}
                 </div>
@@ -563,16 +603,23 @@ export default function App() {
                       <span className="text-black">Omset Kotor</span>
                       <span className="font-bold text-black">Rp {total.toLocaleString('id-ID')}</span>
                     </div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-black">
-                        {gajiMode === 'jam'
-                          ? `Gaji Kru (${jamKerja} jam × Rp ${(tarifJam / 1000).toLocaleString('id-ID')}.000)`
-                          : autoGajiMode === 'flat'
-                            ? `Gaji Kru (Flat Rp 50.000 × ${jumlahKru})`
-                            : `Gaji Kru (${PERSEN_GAJI}% omset)`}
-                      </span>
-                      <span className="font-bold text-black">Rp {gaji.toLocaleString('id-ID')}</span>
-                    </div>
+                    {gajiAktif ? (
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-black">
+                          {gajiMode === 'jam'
+                            ? `Gaji Kru (${jamKerja} jam × Rp ${(tarifJam / 1000).toLocaleString('id-ID')}.000)`
+                            : autoGajiMode === 'flat'
+                              ? `Gaji Kru (Flat Rp 50.000 × ${jumlahKru})`
+                              : `Gaji Kru (${PERSEN_GAJI}% omset)`}
+                        </span>
+                        <span className="font-bold text-black">Rp {gaji.toLocaleString('id-ID')}</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-black italic">Gaji ditulis di pengeluaran</span>
+                        <span className="font-bold text-black">Rp 0</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-black">Item Terjual</span>
                       <span className="font-bold text-black">{itemTerjual}</span>
@@ -590,10 +637,12 @@ export default function App() {
                           <span className="text-black">Total Pengeluaran</span>
                           <span className="font-bold text-black">Rp {totalPengeluaran.toLocaleString('id-ID')}</span>
                         </div>
-                        <div className="flex justify-between text-sm mt-0.5">
-                          <span className="text-black">Gaji + Pengeluaran</span>
-                          <span className="font-bold text-black">Rp {(gaji + totalPengeluaran).toLocaleString('id-ID')}</span>
-                        </div>
+                        {gajiAktif && (
+                          <div className="flex justify-between text-sm mt-0.5">
+                            <span className="text-black">Gaji + Pengeluaran</span>
+                            <span className="font-bold text-black">Rp {(gaji + totalPengeluaran).toLocaleString('id-ID')}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                     <div className="border-t-2 border-black pt-2 mt-2 flex justify-between text-sm">
