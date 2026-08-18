@@ -123,7 +123,7 @@ const compactRupiah = (v: number) => {
 
 function AggChart({ data }: { data: Bucket[] }) {
   return (
-    <ResponsiveContainer width="100%" height={280} initialDimension={{ width: 600, height: 280 }}>
+    <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
         <XAxis dataKey="label" fontSize={11} tick={{ fill: '#6b7280' }} interval="preserveStartEnd" />

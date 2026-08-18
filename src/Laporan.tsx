@@ -217,19 +217,6 @@ export default function Laporan() {
       })
   }, [])
 
-  const archiveOldReports = useCallback(() => {
-    const today = new Date()
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-    supabase
-      .from('closing_reports')
-      .update({ archived: true })
-      .or('archived.is.null,archived.eq.false')
-      .lt('tanggal', `${todayStr}T00:00:00`)
-      .then(({ error }) => {
-        if (error) console.warn('Gagal arsip otomatis laporan lama:', error.message)
-      })
-  }, [])
-
   const loadLapaks = useCallback(() => {
     listLapak().then((list) => {
       if (list) {
@@ -244,15 +231,13 @@ export default function Laporan() {
   useEffect(() => {
     setLoading(true)
     loadReports()
-    archiveOldReports()
     loadLapaks()
     const id = setInterval(() => {
       loadReports()
-      archiveOldReports()
       loadLapaks()
     }, 10000)
     return () => clearInterval(id)
-  }, [loadReports, archiveOldReports, loadLapaks])
+  }, [loadReports, loadLapaks])
 
   const byNo = new Map<number, ClosingReport[]>()
   const unknown: ClosingReport[] = []
