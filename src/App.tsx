@@ -446,7 +446,7 @@ export default function App() {
                 <div className="md:flex md:gap-4 md:items-start">
                 <div className="flex overflow-x-auto snap-x snap-mandatory md:flex-1 md:min-w-0 md:flex-col md:overflow-visible md:snap-none">
                   <div className="w-full flex-none snap-start">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6 justify-center">
+                    <div className="grid grid-cols-2 gap-3 mb-6 justify-center">
                       {menu.map((item) => (
                         <button
                           key={item.id}
@@ -473,7 +473,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="w-full flex-none snap-start">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3 justify-center">
+                    <div className="grid grid-cols-2 gap-3 mb-3 justify-center">
                       {bahanMenu.map((item) => {
                         if (!pieceIds.has(item.id)) {
                           return (
@@ -532,7 +532,7 @@ export default function App() {
                         )
                       })}
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3 mt-3 justify-center">
+                    <div className="grid grid-cols-2 gap-3 mb-3 mt-3 justify-center">
                       {kejuMenu.map((item) => (
                         <button
                           key={item.id}
