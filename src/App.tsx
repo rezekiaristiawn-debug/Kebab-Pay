@@ -238,7 +238,7 @@ export default function App() {
   const [expenseFocus, setExpenseFocus] = useState(false)
   const [jumlahKru, setJumlahKru] = useState(draft?.jumlahKru ?? 1)
   const [kruInput, setKruInput] = useState<string | null>(null)
-  const [showBurger, setShowBurger] = useState(true)
+  const [showBurger, setShowBurger] = useState(false)
   const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
