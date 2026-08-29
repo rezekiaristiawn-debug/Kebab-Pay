@@ -69,9 +69,9 @@ export function ReceiptCard({ report }: {
               </tr>
             </thead>
             <tbody>
-              {report.stok.map((s, i) => (
+              {report.stok.filter((s) => s.terjual > 0).map((s, i) => (
                 <tr key={i} className="border-t border-black">
-                  <td className="px-2 py-0.5 text-black">{s.name}</td>
+                  <td className="px-2 py-0.5 text-black whitespace-nowrap">{s.name}</td>
                   <td className="px-2 py-0.5 text-right text-black">{s.awal}</td>
                   <td className="px-2 py-0.5 text-right text-black">{s.sisa}</td>
                   <td className="px-2 py-0.5 text-right font-bold text-black">{s.terjual}</td>
@@ -86,7 +86,7 @@ export function ReceiptCard({ report }: {
           <p className="text-black font-bold mb-0.5">Nilai Stok Terjual</p>
           <p className="text-[10px] text-black mb-1">Estimasi dari terjual × harga item</p>
           <div className="space-y-0.5">
-            {stokValues.map((s, i) => (
+            {stokValues.filter((s) => s.terjual > 0).map((s, i) => (
               <div key={i} className="flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <span className="text-black">{s.name}</span>

@@ -51,17 +51,6 @@ function ClockIcon() {
   )
 }
 
-function KebabLogo() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5">
-      <path d="M12 1.5V22" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-      <circle cx="12" cy="7.5" r="3.1" fill="currentColor" />
-      <circle cx="12" cy="12.5" r="4.3" fill="currentColor" />
-      <circle cx="12" cy="18" r="3.1" fill="currentColor" />
-    </svg>
-  )
-}
-
 type NavItem = { id: Page; label: string; icon: () => ReactNode; accent?: boolean }
 
 const posNavItems: NavItem[] = [
@@ -90,13 +79,15 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
     <div className="h-dvh flex flex-col bg-gray-50 overflow-hidden">
       <header className="flex-none z-10 bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-2">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-lg bg-[#F84616] flex items-center justify-center text-white">
-              <KebabLogo />
-            </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <img
+              src="/asset/logokebabgatsu.png"
+              alt="Kebab Gatsu"
+              className="h-10 w-auto object-contain"
+            />
             <div className="flex flex-col leading-none">
-              <span className="text-sm font-extrabold tracking-widest text-[#F84616]">KEBAB</span>
-              <span className="text-xl font-extrabold tracking-widest text-gray-900 leading-none">GATSU</span>
+              <span className="text-base font-bold text-black">Kebab</span>
+              <span className="text-sm font-bold text-black">Gatsu</span>
             </div>
           </div>
 
@@ -110,11 +101,12 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
                   onClick={() => onNavigate(item.id)}
                   aria-label={item.label}
                   title={item.label}
-                  className={`flex items-center justify-center px-3 py-2 transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 transition-colors cursor-pointer ${
                     isActive ? 'text-[#F84616]' : 'text-gray-500 hover:text-[#F84616]'
                   }`}
                 >
                   <Icon />
+                  <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>
                 </button>
               )
             })}
