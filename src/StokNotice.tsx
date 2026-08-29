@@ -38,7 +38,6 @@ export default function StokNotice() {
           onClick={() => { setChecking(true); setMissing(false); check() }}
           className="px-3 py-1 border border-red-600 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors cursor-pointer"
         >
-          Saya sudah jalankan
         </button>
       </div>
     </div>

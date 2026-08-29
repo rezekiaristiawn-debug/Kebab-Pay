@@ -51,6 +51,17 @@ function ClockIcon() {
   )
 }
 
+function KebabLogo() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5">
+      <path d="M12 1.5V22" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      <circle cx="12" cy="7.5" r="3.1" fill="currentColor" />
+      <circle cx="12" cy="12.5" r="4.3" fill="currentColor" />
+      <circle cx="12" cy="18" r="3.1" fill="currentColor" />
+    </svg>
+  )
+}
+
 type NavItem = { id: Page; label: string; icon: () => ReactNode; accent?: boolean }
 
 const posNavItems: NavItem[] = [
@@ -77,13 +88,19 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
 
   return (
     <div className="h-dvh flex flex-col bg-gray-50 overflow-hidden">
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </main>
+      <header className="flex-none z-10 bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)]">
+        <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-2">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-[#F84616] flex items-center justify-center text-white">
+              <KebabLogo />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span className="text-sm font-extrabold tracking-widest text-[#F84616]">KEBAB</span>
+              <span className="text-xl font-extrabold tracking-widest text-gray-900 leading-none">GATSU</span>
+            </div>
+          </div>
 
-      <footer className="flex-none z-10 bg-white border-t border-gray-200 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-evenly px-3 sm:px-6 h-16">
-          <nav className="flex items-center justify-evenly w-full">
+          <nav className="flex items-center shrink-0">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = activePage === item.id
@@ -103,7 +120,11 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
             })}
           </nav>
         </div>
-      </footer>
+      </header>
+
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {children}
+      </main>
     </div>
   )
 }
