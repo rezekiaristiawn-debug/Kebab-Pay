@@ -66,6 +66,9 @@ const kejuMenu: MenuItem[] = [
   { id: 18, name: 'Keju Mozarella', price: '3k', priceNum: 3000, image: '/asset/kejumozarella.svg' },
 ]
 
+const kebabItems = menu.filter((item) => !item.name.startsWith('Burger'))
+const burgerItems = menu.filter((item) => item.name.startsWith('Burger'))
+
 const menuRecipes: Record<number, RecipeIngredient[]> = {
   1: [{ code: 'S', amount: 0.25 }, { code: 'K', amount: 1 }],
   2: [{ code: 'T', amount: 1 }, { code: 'K', amount: 1 }],
@@ -235,6 +238,7 @@ export default function App() {
   const [expenseFocus, setExpenseFocus] = useState(false)
   const [jumlahKru, setJumlahKru] = useState(draft?.jumlahKru ?? 1)
   const [kruInput, setKruInput] = useState<string | null>(null)
+  const [showBurger, setShowBurger] = useState(true)
   const timersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
   const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -447,7 +451,7 @@ export default function App() {
                 <div className="flex overflow-x-auto snap-x snap-mandatory md:flex-1 md:min-w-0 md:flex-col md:overflow-visible md:snap-none">
                   <div className="w-full flex-none snap-start">
                     <div className="grid grid-cols-2 gap-3 mb-6 justify-center">
-                      {menu.map((item) => (
+                      {kebabItems.map((item) => (
                         <button
                           key={item.id}
                           onClick={() => handleClick(item)}
@@ -471,6 +475,40 @@ export default function App() {
                         </button>
                       ))}
                     </div>
+                    <button
+                      onClick={() => setShowBurger((prev) => !prev)}
+                      className="w-full flex items-center justify-center gap-2 mb-4 py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+                    >
+                      {showBurger ? <span>−</span> : <span>+</span>}
+                      <span>Menu Burger ({burgerItems.length})</span>
+                    </button>
+                    {showBurger && (
+                      <div className="grid grid-cols-2 gap-3 mb-6 justify-center">
+                        {burgerItems.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => handleClick(item)}
+                            className="relative flex flex-col items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+                          >
+                            <div className="relative w-full">
+                              {visibleBadges.has(item.id) && (
+                                <span className="click-badge absolute top-1 right-1 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400 text-black text-sm font-bold shadow-md">
+                                  {clickCounts[item.id] || 0}
+                                </span>
+                              )}
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                onError={(e) => { e.currentTarget.src = '/asset/kebabbiasa.png' }}
+                                className="w-full aspect-square object-cover rounded-md"
+                              />
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                            <span className="text-xs text-gray-500">{item.price}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="w-full flex-none snap-start">
                     <div className="grid grid-cols-2 gap-3 mb-3 justify-center">
@@ -501,8 +539,12 @@ export default function App() {
                           )
                         }
                         return (
-                          <div key={item.id} className="relative flex flex-col items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div className="relative w-full">
+                          <div
+                            key={item.id}
+                            onClick={() => handlePieceOrder(item, 4)}
+                            className="relative flex flex-col items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+                          >
+                            <div className="relative w-full pointer-events-none">
                               {visibleBadges.has(item.id) && (
                                 <span className="click-badge absolute top-1 right-1 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400 text-black text-sm font-bold shadow-md">
                                   {clickCounts[item.id] || 0}
@@ -515,12 +557,12 @@ export default function App() {
                                 className="w-full aspect-square object-cover rounded-md"
                               />
                             </div>
-                            <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                            <span className="text-sm font-medium text-gray-700 pointer-events-none">{item.name}</span>
                             <div className="grid grid-cols-4 gap-1 w-full">
                               {[4, 3, 2, 1].map((potong) => (
                                 <button
                                   key={potong}
-                                  onClick={() => handlePieceOrder(item, potong)}
+                                  onClick={(e) => { e.stopPropagation(); handlePieceOrder(item, potong) }}
                                   className="flex flex-col items-center py-1 border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer text-sm font-bold leading-tight"
                                 >
                                   {potong}
