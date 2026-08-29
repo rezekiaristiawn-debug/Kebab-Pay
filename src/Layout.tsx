@@ -101,12 +101,11 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
                   onClick={() => onNavigate(item.id)}
                   aria-label={item.label}
                   title={item.label}
-                  className={`flex items-center gap-1.5 px-3 py-2 transition-colors cursor-pointer ${
+                  className={`flex items-center justify-center px-3 py-2 transition-colors cursor-pointer ${
                     isActive ? 'text-[#F84616]' : 'text-gray-500 hover:text-[#F84616]'
                   }`}
                 >
                   <Icon />
-                  <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>
                 </button>
               )
             })}
