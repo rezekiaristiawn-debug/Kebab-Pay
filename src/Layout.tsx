@@ -86,8 +86,8 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
               className="h-10 w-auto object-contain"
             />
             <div className="flex flex-col leading-none">
-              <span className="text-2xl font-light text-black leading-tight">Kebab</span>
-              <span className="text-2xl font-light text-black leading-tight">Gatsu</span>
+              <span className="text-2xl font-bold text-black leading-tight">Kebab</span>
+              <span className="text-2xl font-bold text-black leading-tight">Gatsu</span>
             </div>
           </div>
 
