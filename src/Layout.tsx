@@ -83,11 +83,11 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
             <img
               src="/asset/logokebabgatsu.png"
               alt="Kebab Gatsu"
-              className="h-12 w-auto object-contain"
+              className="h-10 w-auto object-contain"
             />
             <div className="flex flex-col leading-none">
-              <span className="text-base font-bold text-black">Kebab</span>
-              <span className="text-sm font-bold text-black">Gatsu</span>
+              <span className="text-5xl font-bold text-black leading-none">Kebab</span>
+              <span className="text-5xl font-bold text-black leading-none">Gatsu</span>
             </div>
           </div>
 
