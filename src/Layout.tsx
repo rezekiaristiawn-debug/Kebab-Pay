@@ -78,7 +78,7 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
   return (
     <div className="h-dvh flex flex-col bg-gray-50 overflow-hidden">
       <header className="flex-none z-10 bg-white border-b border-gray-200 pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center justify-between gap-2 px-3 sm:px-5 py-2">
+        <div className="flex items-center justify-between gap-2 p-4">
           <div className="flex items-center gap-2 shrink-0">
             <img
               src="/asset/logokebabgatsu.png"
@@ -86,8 +86,8 @@ export default function Layout({ children, activePage, onNavigate }: LayoutProps
               className="h-10 w-auto object-contain"
             />
             <div className="flex flex-col leading-none">
-              <span className="text-2xl font-bold text-black leading-none">Kebab</span>
-              <span className="text-2xl font-bold text-black leading-none">Gatsu</span>
+              <span className="text-2xl font-medium text-black leading-snug">Kebab</span>
+              <span className="text-2xl font-medium text-black leading-snug">Gatsu</span>
             </div>
           </div>
 
